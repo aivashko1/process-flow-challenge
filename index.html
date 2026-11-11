@@ -1,0 +1,2297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Process Flow Challenge</title>
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#1f2937; --ink2:#374151; --muted:#6b7280; --line:#d9dde3; --soft:#eef0f3;
+  --accent:#1d4ed8; --accent-ink:#ffffff; --accent-soft:#e8eefc;
+  --amber:#92400e; --amber-bg:#fef3c7; --red:#991b1b; --red-bg:#fee2e2; --green:#166534; --green-bg:#dcfce7;
+  --radius:10px; --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #93b4f5;outline-offset:2px}
+h1,h2,h3{line-height:1.25;margin:0 0 .5em}
+h2{font-size:1.35rem} h3{font-size:1.05rem}
+p{margin:.35em 0 .7em}
+small{color:var(--muted)}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:.45em .9em;font-weight:500}
+.btn:hover:not(:disabled){background:var(--soft)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover:not(:disabled){background:#1e40af}
+.btn.sm{padding:.25em .6em;font-size:.88rem}
+.btn.ghost{border-color:transparent;background:transparent}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:16px}
+.muted{color:var(--muted)}
+.hidden{display:none !important}
+
+/* ---------- Header ---------- */
+header.top{flex:0 0 auto;display:flex;align-items:center;gap:16px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line);min-height:58px}
+.brand{display:flex;flex-direction:column;min-width:0}
+.brand b{font-size:1.05rem}
+.brand small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hcenter{flex:1;display:flex;justify-content:center;align-items:center;gap:12px}
+.phase{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.45rem;padding:2px 12px;border-radius:8px;min-width:88px;text-align:center}
+.timer.amber{background:var(--amber-bg);color:var(--amber)}
+.timer.red{background:var(--red-bg);color:var(--red)}
+.timernote{font-size:.85rem;font-weight:600}
+.hright{display:flex;align-items:center;gap:10px}
+.chip{display:inline-block;background:var(--soft);border-radius:999px;padding:2px 10px;font-size:.85rem}
+details.fac{position:relative}
+details.fac summary{list-style:none;cursor:pointer;font-size:.85rem;color:var(--muted);padding:6px 8px;border-radius:6px}
+details.fac summary::-webkit-details-marker{display:none}
+details.fac[open] summary{background:var(--soft)}
+.facmenu{position:absolute;right:0;top:110%;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:6px;display:flex;flex-direction:column;min-width:190px;z-index:50}
+.facmenu button{text-align:left;border:0;background:none;padding:8px 10px;border-radius:6px}
+.facmenu button:hover{background:var(--soft)}
+
+/* ---------- Screens ---------- */
+main{flex:1 1 auto;min-height:0;position:relative}
+.screen{display:none;height:100%;overflow:auto}
+.screen.active{display:block}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 16px 48px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.lead{font-size:1.08rem}
+.field{margin:12px 0}
+.field label.lbl{display:block;font-weight:600;margin-bottom:4px}
+input[type=text],textarea,select{border:1px solid var(--line);border-radius:8px;padding:.45em .6em;background:#fff;width:100%}
+textarea{min-height:76px;resize:vertical}
+.scale{display:flex;gap:6px;flex-wrap:wrap}
+.scale button{width:44px;height:40px;border:1px solid var(--line);border-radius:8px;background:#fff;font-weight:600}
+.scale button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.scale-ends{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);max-width:260px}
+.opts label{display:flex;gap:8px;align-items:flex-start;padding:4px 0;cursor:pointer}
+.qnum{font-weight:600}
+.actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:16px;flex-wrap:wrap}
+.req{color:var(--red)}
+.steps6{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:860px){.steps6{grid-template-columns:1fr}}
+.step6{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fcfcfd}
+.step6 b{display:block}
+.step6 ul{margin:.3em 0 0;padding-left:1.1em;font-size:.92rem}
+.sym{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.sym div{display:flex;align-items:center;gap:10px;font-size:.92rem}
+.checklist{columns:2;column-gap:28px;padding-left:1.1em;margin:0}
+@media (max-width:860px){.checklist{columns:1}}
+.checklist li{margin:2px 0;break-inside:avoid}
+.ex{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff}
+.ex svg{width:100%;height:auto;display:block}
+.ex ul{margin:.4em 0 0;padding-left:1.1em;font-size:.9rem}
+.ex.good h3{color:var(--green)} .ex.bad h3{color:var(--red)}
+table.rubric{border-collapse:collapse;width:100%;font-size:.88rem}
+table.rubric th,table.rubric td{border:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left}
+table.rubric th{background:var(--soft)}
+.sop{font-size:.95rem}
+.sop h4{margin:1.1em 0 .3em;font-size:1rem}
+.sop .sec{margin-left:0}
+.sop .num{display:inline-block;min-width:56px;color:var(--muted);font-variant-numeric:tabular-nums}
+.sop .item{margin:.25em 0 .25em 0;padding-left:56px;text-indent:-56px}
+.sop ul{margin:.2em 0 .5em 74px;padding-left:1em}
+.sop .note{border:1px solid #9ca3af;padding:6px 10px;margin:.5em 0 .7em 56px;background:#fafafa}
+.sop .doc-h{border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+.banner{background:var(--accent-soft);border-radius:8px;padding:10px 14px;margin-bottom:14px}
+
+/* ---------- Build layout ---------- */
+#scr-build.active{display:grid;grid-template-columns:minmax(250px,24%) minmax(0,1fr) auto;height:100%;overflow:hidden}
+.panel{background:#fff;border-right:1px solid var(--line);min-height:0;display:flex;flex-direction:column}
+#brief .tabs{display:flex;border-bottom:1px solid var(--line);flex:0 0 auto}
+#brief .tabs button{flex:1;border:0;background:none;padding:10px 6px;font-size:.88rem;font-weight:600;color:var(--muted);border-bottom:3px solid transparent}
+#brief .tabs button[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent)}
+#brief .tabbody{overflow:auto;padding:14px 16px;flex:1;font-size:.93rem}
+#brief .tabbody .sop .item{padding-left:44px;text-indent:-44px}
+#brief .tabbody .sop .num{min-width:44px}
+#brief .tabbody .sop ul{margin-left:58px}
+#brief .tabbody .sop .note{margin-left:44px}
+#workspace{border-right:1px solid var(--line);background:#fff}
+.stepper{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.stepper .lbl{font-size:.8rem;color:var(--muted);margin-right:4px}
+.stepper button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:2px 10px;font-size:.82rem}
+.stepper button[data-s=doing]{background:var(--amber-bg);border-color:#f59e0b}
+.stepper button[data-s=done]{background:var(--green-bg);border-color:#22c55e}
+.toolbar{display:flex;gap:4px;padding:6px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.toolbar .sep{width:1px;height:26px;background:var(--line);margin:0 4px}
+.pal{display:flex;align-items:center;gap:5px;border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 7px;font-size:.8rem;cursor:grab}
+.pal:hover{background:var(--soft)}
+.pal svg{flex:0 0 auto}
+.tb{border:1px solid transparent;background:none;border-radius:6px;padding:4px 7px;font-size:.82rem}
+.tb:hover:not(:disabled){background:var(--soft);border-color:var(--line)}
+.tb[aria-pressed=true]{background:var(--accent-soft);border-color:#bfd0f8}
+.tb:disabled{opacity:.4}
+.propbar{display:flex;gap:8px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);min-height:42px;font-size:.85rem;flex-wrap:wrap;background:#fbfbfc}
+.propbar input,.propbar select{width:auto;padding:.25em .5em;font-size:.85rem}
+.propbar .k{color:var(--muted)}
+#canvasWrap{position:relative;flex:1;overflow:auto;background:#eceef1}
+#canvas{display:block;user-select:none;-webkit-user-select:none;touch-action:none}
+#canvasWrap.locked #canvas{cursor:default}
+.node{cursor:move}
+.node .handle{opacity:0;cursor:crosshair;transition:opacity .1s}
+.node:hover .handle,.node.sel .handle{opacity:1}
+#canvasWrap.locked .node{cursor:default}
+#canvasWrap.locked .handle{display:none}
+#inlineEditor{position:absolute;z-index:5;border:2px solid var(--accent);border-radius:6px;padding:4px 6px;font-size:13px;resize:none;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15);text-align:center;min-height:0}
+.lockmsg{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:6px 14px;border-radius:999px;font-size:.85rem;z-index:6}
+
+/* ---------- Coach ---------- */
+#coach{border-right:0;border-left:1px solid var(--line);width:56px;transition:width .15s}
+#coach.open{width:clamp(300px,26vw,380px)}
+.coach-rail{flex:1;border:0;background:var(--accent);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:700;width:56px}
+.coach-rail span{writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.06em;font-size:1rem}
+.coach-rail:hover{background:#1e40af}
+#coach.open .coach-rail{display:none}
+.coach-body{display:none;flex-direction:column;height:100%;min-height:0}
+#coach.open .coach-body{display:flex}
+.coach-head{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line)}
+.coach-head b{display:block}
+.coach-head small{display:block;font-size:.78rem}
+.cps{display:grid;grid-template-columns:1fr;gap:4px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.cps button{text-align:left;border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 9px;font-size:.84rem}
+.cps button:hover:not(:disabled){background:var(--accent-soft);border-color:#bfd0f8}
+.cps button .n{display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--soft);text-align:center;font-size:.72rem;line-height:18px;margin-right:6px;font-weight:700}
+.hintrow{display:flex;gap:6px;padding:0 10px 8px;border-bottom:1px solid var(--line)}
+.hintrow select{flex:1;font-size:.82rem;padding:.25em .4em}
+.cmsgs{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#fafbfc}
+.cm{border-radius:10px;padding:8px 11px;font-size:.87rem;max-width:96%}
+.cm.l{align-self:flex-end;background:var(--accent);color:#fff}
+.cm.c{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+.cm .str{color:var(--green);font-weight:600;margin-bottom:4px}
+.cm .ob{border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+.cm .ob p{margin:.15em 0}
+.cm .crit{display:inline-block;background:var(--soft);border-radius:4px;padding:0 6px;font-size:.74rem;font-weight:700;margin-bottom:2px}
+.cm .refs{font-size:.78rem;color:var(--muted);margin-top:4px}
+.cm .rq{font-style:italic;margin-top:6px}
+.cm .resp{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.cm .resp button{font-size:.76rem;padding:2px 8px;border:1px solid var(--line);background:#fff;border-radius:999px}
+.cm .resp button[aria-pressed=true]{background:var(--ink2);color:#fff;border-color:var(--ink2)}
+.cm .resp button:disabled:not([aria-pressed=true]){opacity:.45}
+.cm .dis{margin-top:6px}
+.cm .dis textarea{min-height:52px;font-size:.84rem}
+.cm .scale button{width:34px;height:30px;font-size:.84rem}
+.typing{font-size:.8rem;color:var(--muted);font-style:italic;padding:0 12px 6px}
+.cp5bar{padding:8px 10px;border-top:1px solid var(--line);background:var(--amber-bg)}
+.cform{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
+.cform input{flex:1;font-size:.86rem}
+
+/* ---------- Debrief ---------- */
+.mapbox{overflow:auto;border:1px solid var(--line);border-radius:8px;max-height:520px;background:#fff}
+.mapbox svg{display:block}
+.score-row td:nth-child(2){white-space:nowrap}
+.dots{letter-spacing:2px;color:var(--accent);font-size:1.05rem}
+.total{font-size:1.6rem;font-weight:700}
+.legend-hl span{display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:.85rem}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;border:2.5px solid}
+.convo .cm{max-width:100%}
+.convo{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;z-index:100;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+
+@media print{
+  header.top,.screen:not(#scr-debrief),.no-print,.toast{display:none !important}
+  body{display:block;background:#fff}
+  main,#scr-debrief{display:block !important;height:auto !important;overflow:visible !important}
+  .card{break-inside:avoid;border-color:#bbb}
+  .mapbox{max-height:none;overflow:visible}
+  .convo{max-height:none;overflow:visible}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b id="hTitle">Process Flow Challenge</b><small id="hSub"></small></div>
+  <div class="hcenter">
+    <span class="phase" id="phaseLabel"></span>
+    <span class="timer" id="timer" role="timer" aria-live="off"></span>
+    <span class="timernote" id="timerNote" aria-live="polite"></span>
+  </div>
+  <div class="hright">
+    <span class="chip hidden" id="pChip"></span>
+    <button class="btn primary hidden" id="btnSubmit">Submit map</button>
+    <details class="fac no-print">
+      <summary aria-label="Facilitator menu">Facilitator ▾</summary>
+      <div class="facmenu">
+        <button id="facExport">Export data (JSON)</button>
+        <button id="facReset">Reset session…</button>
+      </div>
+    </details>
+  </div>
+</header>
+
+<main>
+<!-- ================= WELCOME ================= -->
+<section class="screen active" id="scr-welcome">
+  <div class="wrap">
+    <div class="card">
+      <h2 id="wTitle"></h2>
+      <p class="lead" id="wOverview"></p>
+      <ol id="wPhases"></ol>
+      <p id="wCoachNote"></p>
+      <p class="muted">This is a learning exercise, not a test. Your participant code is used instead of your name.</p>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label class="lbl" for="pCode">Participant code <span class="req">*</span></label>
+        <input type="text" id="pCode" placeholder="e.g. P01" maxlength="20" style="max-width:220px" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="lbl">How confident are you in creating a process map today? <span class="req">*</span></span>
+        <div class="scale" id="baseConf" role="group" aria-label="Confidence 1 to 5"></div>
+        <div class="scale-ends"><span>1 · Not at all</span><span>5 · Very</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Quick warm-up <small>(ungraded — guessing is fine)</small></h3>
+      <div id="baseItems"></div>
+    </div>
+    <div class="actions">
+      <span class="muted" id="wHint">Enter your code and answer the questions to begin.</span>
+      <button class="btn primary" id="btnStart" disabled>Start</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= INSTRUCTION ================= -->
+<section class="screen" id="scr-instruction">
+  <div class="wrap" id="instrBody"></div>
+</section>
+
+<!-- ================= READING ================= -->
+<section class="screen" id="scr-reading">
+  <div class="wrap">
+    <div class="card">
+      <h2>Read the SOP</h2>
+      <div id="readBrief"></div>
+      <div class="banner">Tip: as you read, note <b>where the process starts and ends</b>, <b>who does what</b>, and every <b>“if”</b> — those become decisions. The SOP stays available while you build.</div>
+    </div>
+    <div class="card"><div id="readSop" class="sop"></div></div>
+    <div class="actions"><button class="btn primary" id="btnReadDone">I’m ready to build →</button></div>
+  </div>
+</section>
+
+<!-- ================= BUILD ================= -->
+<section class="screen" id="scr-build">
+  <aside class="panel" id="brief">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="challenge">Challenge</button>
+      <button role="tab" aria-selected="false" data-tab="sop">SOP</button>
+      <button role="tab" aria-selected="false" data-tab="method">Method &amp; symbols</button>
+    </div>
+    <div class="tabbody" id="tab-challenge"></div>
+    <div class="tabbody hidden" id="tab-sop"><div class="sop" id="briefSop"></div></div>
+    <div class="tabbody hidden" id="tab-method"></div>
+  </aside>
+
+  <section class="panel" id="workspace">
+    <div class="stepper" id="stepper"></div>
+    <div class="toolbar" id="toolbar"></div>
+    <div class="propbar" id="propbar"></div>
+    <div id="canvasWrap">
+      <svg id="canvas" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process map canvas"></svg>
+      <textarea id="inlineEditor" class="hidden" spellcheck="true" aria-label="Edit text"></textarea>
+    </div>
+  </section>
+
+  <aside class="panel" id="coach">
+    <button class="coach-rail" id="coachOpen" aria-expanded="false" aria-controls="coachBody"><span>AI Friend</span></button>
+    <div class="coach-body" id="coachBody">
+      <div class="coach-head">
+        <div><b>AI Friend</b><small>Built-in coach · feedback is optional</small><small>Requests used: <span id="reqCount">0</span></small></div>
+        <button class="btn sm ghost" id="coachClose" aria-label="Collapse AI Friend">Hide ›</button>
+      </div>
+      <div class="cps" id="cpList"></div>
+      <div class="hintrow">
+        <button class="btn sm" id="btnHint">Give me a hint</button>
+        <select id="hintLevel" aria-label="Hint level">
+          <option value="1">Level 1 · Nudge</option>
+          <option value="2">Level 2 · Point</option>
+          <option value="3">Level 3 · Explain</option>
+        </select>
+      </div>
+      <div class="cmsgs" id="cmsgs" aria-live="polite"></div>
+      <div class="typing hidden" id="typing">AI Friend is looking at your map…</div>
+      <div class="cp5bar hidden" id="cp5bar"><button class="btn sm primary" id="btnDoneRevising">Done revising</button> <small>Click when you've acted on your draft review.</small></div>
+      <form class="cform" id="cform"><input type="text" id="cinput" placeholder="Ask about process mapping…" aria-label="Ask AI Friend"><button class="btn sm" type="submit">Send</button></form>
+    </div>
+  </aside>
+</section>
+
+<!-- ================= CONFIDENCE ================= -->
+<section class="screen" id="scr-confidence">
+  <div class="wrap">
+    <div class="card">
+      <h2 id="confTitle">Time’s up — your map is locked</h2>
+      <p>Before you reflect, one quick rating.</p>
+      <div class="field">
+        <span class="lbl">How confident are you in your final map? <span class="req">*</span></span>
+        <div class="scale" id="finalConf" role="group" aria-label="Final confidence 1 to 5"></div>
+        <div class="scale-ends"><span>1 · Not at all</span><span>5 · Very</span></div>
+      </div>
+      <div class="actions"><button class="btn primary" id="btnConfNext" disabled>Continue to reflection →</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REFLECTION ================= -->
+<section class="screen" id="scr-reflection">
+  <div class="wrap">
+    <div class="card">
+      <h2>Final reflection</h2>
+      <p class="muted">Questions marked <span class="req">*</span> are required. There are no right answers — be honest and specific.</p>
+      <div id="reflBody"></div>
+      <div class="actions"><span class="muted" id="reflHint"></span><button class="btn primary" id="btnReflNext" disabled>See my debrief →</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEBRIEF ================= -->
+<section class="screen" id="scr-debrief">
+  <div class="wrap" id="debriefBody"></div>
+</section>
+
+<!-- ================= DONE ================= -->
+<section class="screen" id="scr-done">
+  <div class="wrap">
+    <div class="card">
+      <h2>Thank you!</h2>
+      <p>Your session is complete. Please make sure your results have been saved before closing this tab.</p>
+      <p id="doneStatus" class="muted"></p>
+      <div class="actions" style="justify-content:flex-start">
+        <button class="btn" data-export="json">Download data (JSON)</button>
+        <button class="btn" data-export="csv">Download event log (CSV)</button>
+        <button class="btn" data-export="png">Download map (PNG)</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+'use strict';
+/* =====================================================================
+   GAME_CONFIG — Section A content. Edit text here; no other code changes
+   are needed. Keep the same structure (arrays/objects) when editing.
+   ===================================================================== */
+const GAME_CONFIG = {
+  title: 'Process Flow Challenge',
+  subtitle: 'Caffeine Distribution',
+  version: '1.0.0',
+  // Phase lengths in minutes (facilitator can override with ?teach=&read=&build=)
+  minutes: { instruction: 5, reading: 5, build: 15 },
+
+  overview: 'In this exercise you will learn a simple method for process mapping, read a short Standard Operating Procedure (SOP), and then build a swimlane process map of it.',
+  coachNote: 'While you build, a built-in coach called AI Friend can give you feedback — but only when you ask. Using it is entirely your choice. Feedback is most useful when you leave yourself time to act on it.',
+
+  scenario: 'You’ve just joined the Riverside corporate office. Leadership wants the office’s coffee process documented so new staff know who does what — and so improvement ideas can be spotted. You’ve been handed the Caffeine Manufacturing & Distribution SOP. Your job: turn it into a clear swimlane process map that someone who has never seen the SOP could follow.',
+  objective: 'Map the daily coffee brewing and distribution process — from the moment someone finds an empty coffee pot to the moment fresh coffee is ready for colleagues — using the six-step method and the course symbols.',
+  rules: [
+    'Map one process. Separate, periodic work (e.g., quarterly maintenance) should appear as a link-out (Sub-process / Link shape), not as detailed steps.',
+    'Use at least 2 swimlanes, named by role — never by individual people.',
+    'Include exactly one Start and at least one End.',
+    'Include at least 2 decision points, each with every outcome labeled.',
+    'Flow left-to-right, top-to-bottom. Where practical, “Yes” goes across and “No” goes down.',
+    'AI Friend feedback is optional and unlimited — you decide when and whether to use it.'
+  ],
+  rulesNoCoach: [ // shown instead of the last rule when the coach is off
+    'Check your own work against the rubric before you submit.'
+  ],
+
+  rubric: [
+    { id:'C1', name:'Boundaries', l3:'Clear trigger (empty pot / last cup) and clear end (fresh coffee positioned). Out-of-scope work excluded or linked out.', l2:'Start and End present; one is vague or off-scope.', l1:'Start or End missing or misplaced.', l0:'Neither present.' },
+    { id:'C2', name:'Completeness vs SOP', l3:'All core stages: set-up check, brew/floor choice, brew steps, carafe check, positioning by floor, spill check & clean-up.', l2:'One or two core stages missing.', l1:'Several stages missing.', l0:'Process unrecognizable.' },
+    { id:'C3', name:'Consistent level of detail', l3:'Steps at a similar grain throughout.', l2:'Minor inconsistency.', l1:'Mix of very high- and very low-level steps.', l0:'—' },
+    { id:'C4', name:'Clear labels', l3:'Verb + object, understandable by anyone, roles not names.', l2:'Mostly clear.', l1:'Many vague or noun-only labels.', l0:'—' },
+    { id:'C5', name:'Decision logic', l3:'Every decision is a question with all outcomes labeled and leading somewhere; no dead ends.', l2:'One unlabeled branch or dead end.', l1:'Several.', l0:'No decisions.' },
+    { id:'C6', name:'Ownership / swimlanes', l3:'Lanes are roles from the SOP; steps in the correct lane.', l2:'One step misplaced.', l1:'Lanes unclear or named after individuals.', l0:'No lanes used.' },
+    { id:'C7', name:'Flow & layout', l3:'Left→right, top→bottom; no crossing lines; connectors used where needed.', l2:'Minor backtracking or crossing.', l1:'Hard to follow.', l0:'—' },
+    { id:'C8', name:'Symbols', l3:'Correct shape for every element.', l2:'One or two misuses.', l1:'Frequent misuse.', l0:'—' }
+  ],
+
+  method: [
+    { id:'define', name:'Define', tag:'the process and its boundaries', bullets:['Where does the process begin?','Where does it stop?','What are the inputs and outputs?'] },
+    { id:'walk', name:'Walk', tag:'the flow from start to finish', bullets:['Follow the product or service through the whole process','Left-to-right, top-to-bottom'] },
+    { id:'document', name:'Document', tag:'all steps with consistency', bullets:['Keep a consistent level of detail','Label steps so anyone can understand them','“Yes” across, “No” down where possible'] },
+    { id:'group', name:'Group', tag:'steps into categories / roles', bullets:['Who performs each step?','Each role becomes a swimlane'] },
+    { id:'sequence', name:'Sequence', tag:'steps following the flow', bullets:['Put steps in order','Check every decision has a path for each outcome'] },
+    { id:'draw', name:'Draw', tag:'with the appropriate symbols', bullets:['Use the standard symbols','Avoid crossing lines; use connectors'] }
+  ],
+
+  goodChecklist: [
+    'Process moves left-to-right and top-to-bottom',
+    'Swimlanes clearly define process owners',
+    'Role names are used — not individual names',
+    'Arrows are labeled wherever there is a choice',
+    'A defined end point exists',
+    'No crossing lines — use connectors instead',
+    'Shapes keep a consistent size and text style',
+    'Labels are spell-checked and start with a verb',
+    'Process has a single purpose; adjacent processes are linked out',
+    'Systems/tools used are tagged on steps (e.g., Manual, Email)'
+  ],
+
+  baseline: [
+    { q:'Which symbol shows a decision point?', options:['Rectangle','Diamond','Pill (rounded ends)','Small circle'], answer:1, explain:'A diamond marks a decision. Each outgoing arrow is labeled with an answer (e.g., Yes / No).' },
+    { q:'Which is the better swimlane label?', options:['Casey Lee','Front Desk Agent'], answer:1, explain:'Use roles, not people. People change jobs; roles persist — and anyone can see which role they play.' },
+    { q:'In which direction should a process map generally flow?', options:['Right-to-left, bottom-to-top','Left-to-right, top-to-bottom','Any direction, as long as there are arrows'], answer:1, explain:'Readers naturally scan left-to-right and top-to-bottom, so maps should flow that way.' }
+  ],
+
+  reflection: {
+    feedback: [
+      { id:'r1', q:'At which stages did you request feedback, and why?', req:true },
+      { id:'r2', q:'What was the most useful feedback, and why?', req:true },
+      { id:'r3', q:'Describe one change you made to your map in response to feedback.', req:true },
+      { id:'r4', q:'Did you choose not to follow any feedback? Explain why.', req:true },
+      { id:'r5', q:'How did the feedback affect your confidence in your final map?', req:false },
+      { id:'r6', q:'How might you seek feedback differently in a similar exercise?', req:false }
+    ],
+    noRequests: [ // coach was available but never used
+      { id:'r1', q:'You chose not to request feedback. What led to that choice?', req:true },
+      { id:'r2', q:'How did you check your own work?', req:true },
+      { id:'r3', q:'What would have made feedback worth requesting?', req:true },
+      { id:'r4', q:'Describe one change you made while reviewing your own map.', req:true },
+      { id:'r5', q:'How confident are you that your map would make sense to a new employee, and why?', req:false },
+      { id:'r6', q:'How might you check your work differently in a similar exercise?', req:false }
+    ],
+    noCoach: [ // comparison condition (?coach=off)
+      { id:'r1', q:'At which points did you stop to check your own work, and why?', req:true },
+      { id:'r2', q:'What part of the map was hardest to get right, and why?', req:true },
+      { id:'r3', q:'Describe one change you made to your map after reviewing it.', req:true },
+      { id:'r4', q:'Is there anything you’d still change? Explain why.', req:true },
+      { id:'r5', q:'How did reviewing your own work affect your confidence in your final map?', req:false },
+      { id:'r6', q:'What kind of feedback would have helped you most during this exercise?', req:false }
+    ]
+  },
+
+  debriefPrompts: [
+    'What were your inputs and outputs?',
+    'What did you decide was the appropriate level of detail, and how?',
+    'What, if anything, did you leave off of your process map?',
+    'Did you identify any opportunities to streamline your process?'
+  ],
+
+  sopQuirks: [
+    'The SOP names an individual (“Jordan Avery”) as a brewer. Good maps use the role instead (e.g., “Dark Roast Steward”).',
+    'The office is called “Riverside” in most places but “Lakeview” in section 4.2.1 — an inconsistency worth flagging to the SOP owner.',
+    'Scope bullet 2.0 is unfinished: “Monitoring and re-brewing coffee when …”.',
+    'Clean-up duties (“ensures coffee brewing area is clean and coffee machine is emptied”) appear only in Responsibilities (3.0), not in the Procedure.',
+    'Section 4.10 confirms nobody is notified when fresh coffee is ready.'
+  ],
+
+  // Anonymized SOP (fictional names). Section numbers are referenced by the coach.
+  sopHtml: `
+<div class="doc-h"><b>Caffeine Manufacturing &amp; Distribution (Riverside Office)</b><br>Standard Operating Procedure</div>
+<h4>1.0 PURPOSE AND INTENT</h4>
+<p>The purpose of this standard is to define a process of systematic and controlled actions taken to manufacture coffee daily at the Riverside corporate headquarters.</p>
+<p>This standard defines the procedure and responsibilities within the manufacturing process, including the prerequisites based on coffee type and recipient.</p>
+<p>The intent of this standard is to establish a consistent approach to the management of all coffee maintenance responsibilities that ensures compliance and continual quality improvement.</p>
+<h4>2.0 SCOPE</h4>
+<p>This standard applies to the Riverside corporate office and to caffeine distribution processes that require manufacturing, maintenance and quality control. These processes include but are not limited to:</p>
+<ul><li>Daily brewing of various types of coffee</li><li>Monitoring and re-brewing coffee when</li><li>Restocking of coffee supplies</li><li>Quarterly maintenance of coffee machines</li></ul>
+<p>This standard also applies to the manufacture of coffee only. This standard does not apply to tea brewing and distribution of any sort.</p>
+<h4>3.0 RESPONSIBILITIES</h4>
+<p><b>Office Manager</b></p>
+<ul><li>ensures all brews of coffee are stocked in coffee area</li><li>supports first floor coffee-manufacturing processes, as needed</li><li>conducts quarterly maintenance on carafes</li><li>contacts Summit Coffee Co. representative if machine service is required</li></ul>
+<p><b>Coffee Brewer</b></p>
+<ul><li>encounters empty coffee pot in the morning</li><li>assumes overall ownership of coffee manufacture process</li><li>manages the brewing process and set up of carafes in appropriate location</li><li>ensures coffee brewing area is clean and coffee machine is emptied after brewing process</li><li>enjoys first cup of coffee from new carafe</li></ul>
+<p><b>Coffee Consumers</b></p>
+<ul><li>participates in coffee drinking experience</li><li>re-brews coffee throughout the day if empty carafe encountered</li></ul>
+<p><b>Summit Coffee Co.</b></p>
+<ul><li>ensures periodic review of coffee-making equipment</li></ul>
+<h4>4.0 PROCEDURE</h4>
+<p><b>4.1 Set-Up Requirements</b></p>
+<div class="item"><span class="num">4.1.1</span>The following are required to kick coffee manufacture process</div>
+<ul><li>Coffee maker is turned on</li><li>Coffee maker is set to ‘Ready for Brew’</li><li>Coffee blends are stocked below coffee maker in drawer</li></ul>
+<p><b>4.2 Classification</b></p>
+<div class="item"><span class="num">4.2.1</span>The following includes the full list of brews made at the Lakeview Corporate office:</div>
+<ul><li>Blonde Brew: A favorite brew manufactured on the first floor.</li><li>House Brew: A common brew manufactured on the second floor.</li><li>Half Brew: A unique dark roast brew manufactured on the second floor. Also known as Jordan Avery blend or ‘mud.’</li></ul>
+<p><b>4.3 Brewing Blonde Brew</b></p>
+<div class="item"><span class="num">4.3.1</span>Blonde brew is manufactured on the <b>first floor</b> of the Riverside office.</div>
+<div class="item"><span class="num">4.3.2</span>The Coffee Brewer for Blonde brew will be the Office Manager or Northside team representative to encounter an empty coffee pot on the first floor.</div>
+<div class="item"><span class="num">4.3.3</span>If an empty coffee pot is encountered, the Coffee Brewer will follow the coffee manufacture process (refer to section 4.6).</div>
+<div class="note">NOTE: Individual to consume the last cup of coffee from a pot will be responsible for the manufacture of a new pot e.g. Coffee Brewer.</div>
+<p><b>4.4 Brewing House Brew</b></p>
+<div class="item"><span class="num">4.4.1</span>House brew is manufactured on the <b>second floor</b> of the Riverside office.</div>
+<div class="item"><span class="num">4.4.2</span>The Coffee Brewer for House brew will be first individual to encounter an empty coffee pot on the second floor.</div>
+<div class="item"><span class="num">4.4.2.1</span>This will typically be the first individual in the office that morning working on the second floor.</div>
+<div class="item"><span class="num">4.4.3</span>If an empty coffee pot is encountered, the Coffee Brewer will follow the coffee manufacture process (refer to section 4.6).</div>
+<div class="note">NOTE: Individual to consume the last cup of coffee from a pot will be responsible for the manufacture of a new pot e.g. Coffee Brewer.</div>
+<p><b>4.5 Brewing Dark Roast Half Brew</b></p>
+<div class="item"><span class="num">4.5.1</span>Half brew is manufactured on the <b>second floor</b> of the Riverside office.</div>
+<div class="item"><span class="num">4.5.2</span>The Coffee Brewer for Half brew will be Jordan Avery or other Lakeview steward interested in extra-strong coffee.</div>
+<div class="item"><span class="num">4.5.3</span>If an empty coffee pot is encountered, the Coffee Brewer will follow the coffee manufacture process (refer to section 4.6).</div>
+<div class="item"><span class="num">4.5.3.1</span>Half brew will use the following elements as appropriate:</div>
+<ul><li>Dark roast coffee</li><li>Half brew setting during manufacture process (repeat the above process twice to generate a full pot of coffee).</li></ul>
+<div class="note">NOTE: Individual to consume the last cup of coffee from a pot will be responsible for the manufacture of a new pot e.g. Coffee Brewer.</div>
+<p><b>4.6 Coffee Manufacture Process</b></p>
+<div class="item"><span class="num">4.6.1</span>Coffee Brewer follow the following steps to start the brewing process:</div>
+<div class="item"><span class="num">4.6.1.1</span>Remove silver canister out of coffee maker</div>
+<div class="item"><span class="num">4.6.1.2</span>Insert filter</div>
+<div class="item"><span class="num">4.6.1.3</span>Fill with preferred coffee blend</div>
+<div class="item"><span class="num">4.6.1.4</span>Insert silver canister back into slot</div>
+<div class="item"><span class="num">4.6.1.5</span>Ensure coffee carafe is securely under silver canister</div>
+<div class="note">NOTE: If carafe is not positioned appropriately, liquid will spill on the counter. Check position prior to walking away from the machine.</div>
+<div class="item"><span class="num">4.6.1.6</span>Press full brew or half brew depending on blend</div>
+<div class="item"><span class="num">4.6.2</span>Brew time will last from 2-3 minutes.</div>
+<p><b>4.7 Coffee Positioning and Distribution</b></p>
+<div class="item"><span class="num">4.7.1</span>The Coffee Brewer returns upon completion of the brewing process to position the carafes for consumption.</div>
+<div class="item"><span class="num">4.7.1.1</span>If brewing for first floor, place the brewed coffee on the counter and position coffee catcher under the spout and hang the description card on the coffee pot.</div>
+<div class="item"><span class="num">4.7.1.2</span>If brewing for second floor, place coffee pot in designated slot.</div>
+<div class="item"><span class="num">4.7.2</span>The Coffee Brewer ensures no spillage has occurred and wipes down counter, if required.</div>
+<p><b>4.8 Coffee Consumption</b></p>
+<div class="item"><span class="num">4.8.1</span>Coffee Consumers are welcome to consume coffee of any kind from any floor.</div>
+<p><b>4.9 Periodic Review</b></p>
+<div class="item"><span class="num">4.9.1</span>The Office Manager will clean carafes with bleach quarterly to ensure quality control.</div>
+<div class="item"><span class="num">4.9.2</span>Summit Coffee Co. will conduct quarterly maintenance on machines.</div>
+<div class="item"><span class="num">4.9.2.1</span>If issues arise, Office Manager will contact Summit Coffee Co. for service request.</div>
+<p><b>4.10 Management Notification</b></p>
+<div class="item"><span class="num">4.10.1</span>No notification exists to communicate the availability of coffee to the office.</div>
+<h4>5.0 REFERENCES</h4>
+<p>REF-0193 &nbsp; Summit Coffee Co. Machine Manual<br>REF-0226 &nbsp; Summit Coffee Co. Maintenance Contract</p>`
+};
+
+/* =====================================================================
+   COACH_CONFIG — Section B: the built-in coach ("AI Friend").
+   This is a rule-based coach: it analyses the learner's map (flow JSON)
+   against the SOP model and rubric below. Edit wording, keywords,
+   priorities and limits here. {placeholders} are filled automatically.
+   ===================================================================== */
+const COACH_CONFIG = {
+  name: 'AI Friend',
+  thinkingMs: 700,
+  requestLimit: null,              // null = unlimited
+  lowTimeMs: 120000,               // under 2:00 left -> only 1 observation
+  priority: ['C1','C5','C2','C6','C3','C7','C8','C4'],   // structure before polish
+  critNames: { C1:'Boundaries', C2:'Completeness', C3:'Level of detail', C4:'Labels', C5:'Decision logic', C6:'Ownership', C7:'Flow & layout', C8:'Symbols' },
+
+  checkpoints: [
+    { id:1, label:'Check My Process Boundaries', crit:['C1'], max:1, question:'Where does your map begin and end — and do those match the SOP?' },
+    { id:2, label:'Check My Level of Detail', crit:['C2','C3','C4'], max:1, question:'Could someone unfamiliar with the coffee area follow every label?' },
+    { id:3, label:'Check My Process Logic', crit:['C5','C8'], max:1, question:'If you follow every arrow from Start, do you always reach an End?' },
+    { id:4, label:'Check My Visual Clarity', crit:['C6','C7','C8','C4'], max:2, question:'Could a new reader follow your arrows without asking you a question?' },
+    { id:5, label:'Review My Draft', crit:['C1','C2','C3','C4','C5','C6','C7','C8'], max:2, question:'Which of these would make the biggest difference for a new reader?' }
+  ],
+
+  // Level-3 hints: generic, non-coffee explanations of each criterion
+  explain: {
+    C1:'Boundaries answer two questions: what event starts the process, and what result ends it. Example (takeout restaurant): the process might start at “Customer places order” and end at “Customer receives order” — not at “Restaurant opens” or “Customer eats meal”.',
+    C2:'Completeness means every essential activity in the source document appears on the map. Example (hotel check-in): if the procedure says “Verify ID”, a map that skips it would let a newcomer miss a required control.',
+    C3:'Consistent detail means steps are roughly the same “size”. Example: “Greet guest”, “Verify ID”, “Issue key” are similar in size; putting “Handle entire check-in” next to “Click Save” is not.',
+    C4:'Good labels are verb + object: “Verify reservation”, “Print receipt”. Short, specific, and using role names (“Front Desk Agent”) — never people’s names.',
+    C5:'A decision is a question with one labeled arrow per answer. Example: “Room ready?” → Yes: “Issue key”; No: “Offer to store luggage”. Every path must lead somewhere — eventually to an End.',
+    C6:'Swimlanes are horizontal bands, one per role. Each step sits in the lane of the role who does it. Example (returns): the Customer Service Agent lane issues the return label; the Warehouse Associate lane inspects the item.',
+    C7:'Readers scan left-to-right, top-to-bottom. Lay the main path out that way, avoid crossing lines, and use a pair of connector circles (A … A) to jump instead of crossing.',
+    C8:'Pill = Start/End · rectangle = activity · diamond = decision · wavy bottom = document/form · double-bar rectangle = a separate linked process · small lettered circle = connector.'
+  },
+
+  // Keyword patterns (applied to lower-case labels)
+  patterns: {
+    trigger: /(empty|last cup|run(s)? out|no coffee|out of coffee|finish(es|ed)? (the )?(pot|carafe|coffee)|pot is empty|need(s)? coffee|carafe (is )?empty|nothing left)/,
+    outcome: /(ready|available|served|fresh|positioned|in place|complete|enjoy|full pot|restored|replenished|brewed|on (the )?counter|in (the )?slot)/,
+    vagueTerminal: /^(start|begin|beginning|end|finish|stop|done|complete|process start|process end)\.?$/,
+    outOfScope: /(quarter|maintenan|bleach|service request|repair|annual|contract|\btea\b)/,
+    tea: /\btea\b/,
+    beyondEnd: /(drink|consum|sip)/,
+    person: /(jordan|avery)/,
+    combined: /( and | & |, |; | then )/,
+    roleWords: /(manager|brewer|consumer|employee|staff|team|steward|vendor|service|coffee|office|member|colleague|admin|assistant|lead|supervisor|agent|coordinator|rep|representative|co\.|company|department|facilit|first|second|floor|anyone|person|people|drinker|customer|summit|supplier|user|worker|partner|owner|role)/i,
+    brewerLane: /(brew|employee|staff|colleague|coworker|team member|anyone|person|steward|consumer|drinker|user|worker)/,
+    managerLane: /(manager|admin|facilit)/,
+    vendorLane: /(summit|vendor|supplier|service|maint|coffee co)/,
+    managerTask: /(restock|stock|supplies|order (coffee|supplies)|contact (summit|vendor|service)|service request|maintenance|bleach)/,
+    brewTask: /(canister|filter|press (full|half|brew)|brew button|scoop|grounds)/,
+    notify: /(notify|alert|announce|message|tell|email|slack|let .* know)/,
+    defaultLane: /^(role|lane|org)\s*\d*\s*(\(.*\))?$/i,
+    defaultLabels: ['', 'task', 'process step', 'process', 'step', 'new step', 'decision', 'decision?', 'question', 'question?', '?', 'sub-process', 'subprocess', 'linked process', 'document', 'label', 'text']
+  },
+
+  verbs: ['check','verify','confirm','ensure','turn','switch','set','stock','restock','refill','select','choose','pick','decide','remove','take','open','insert','place','put','add','fill','scoop','replace','return','slide','close','position','align','press','push','start','begin','brew','run','repeat','wait','monitor','hang','attach','label','move','carry','deliver','serve','pour','wipe','clean','empty','discard','dispose','rinse','wash','notify','inform','tell','email','alert','contact','call','request','schedule','review','inspect','record','log','document','enjoy','drink','consume','find','encounter','discover','notice','identify','prepare','make','get','grab','go','walk','bring','store','report','update','approve','complete','finish','receive','send','submit','assign','plan','test','load','lift','secure','power','hit','spot','see','determine','assess','evaluate','order','buy','purchase','perform','conduct','maintain','service','fix','repair','dump','toss','throw','rest','let','leave','keep','use','follow','sign','write','log'],
+
+  // Six core SOP stages used for completeness (C2)
+  stages: [
+    { id:'setup',    name:'Set-up check (machine on, ready, blends stocked)', sop:'4.1',      re:/(ready for brew|ready to brew|turn(ed)? on|switch(ed)? on|power|set[- ]?up|stock(ed)?|supplies|machine (is )?(on|ready)|check (the )?(machine|maker)|drawer|blends? (available|in stock))/ },
+    { id:'blend',    name:'Choose the brew / floor', sop:'4.2–4.5',  re:/(blonde|house|half|dark|roast|which (brew|blend|coffee|floor)|floor|select (a |the )?(brew|blend|coffee)|choose (a |the )?(brew|blend|coffee)|brew type|type of (brew|coffee)|blend type|mud)/ },
+    { id:'brew',     name:'Brew steps (canister, filter, fill, start brew)', sop:'4.6.1', re:/(canister|filter|basket|grounds|fill|scoop|press|brew button|full brew|start (the )?brew|half brew setting|insert)/ },
+    { id:'carafe',   name:'Carafe position check', sop:'4.6.1.5',  re:/((carafe|pot).{0,30}(secure|under|align|in place|correct|check|position))|((secure|check|align|ensure|confirm).{0,30}(carafe|pot))|(spill.{0,15}(prevent|avoid))/ },
+    { id:'position', name:'Position the coffee (by floor)', sop:'4.7.1', re:/(counter|slot|catcher|description card|\bcard\b|serv(e|ing) (area|station)|designated|distribut)/ },
+    { id:'clean',    name:'Spill check & clean-up', sop:'4.7.2',  re:/(spill|wipe|clean|empty (the )?(machine|grounds|filter|maker)|discard|dispose|tidy)/ }
+  ],
+
+  streamlining: [
+    { when:'noNotify', q:'SOP 4.10 says nobody is told when fresh coffee is ready. How might colleagues find out — and would that cut wasted trips to an empty pot?' },
+    { when:'always',   q:'The dark roast needs two half-brew cycles to make a full pot (SOP 4.5.3.1). Is that rework visible on your map — and could it be avoided?' },
+    { when:'always',   q:'Clean-up duties appear only in the Responsibilities section (3.0), not in the Procedure. Where should they live so brewers don’t miss them?' }
+  ],
+
+  // Issue wording. c = rubric criterion, w = weight (score impact), cps = checkpoints that can raise it.
+  // what / why / next are shown as feedback; nudge = Level-1 hint; point = Level-2 hint.
+  issues: {
+    B_EMPTY:        { c:'C1', w:3, cps:[1,2,3,4,5], sop:['4.3.3','4.7'], what:'Your canvas doesn’t have much on it yet.', why:'A map starts with its boundaries — knowing where the process begins and ends keeps everything else in scope.', next:'Add a Start shape naming the event that kicks off the process, and an End shape naming the result.', nudge:'Before drawing anything else: what event makes someone start brewing coffee?', point:'Re-read SOP 4.3.3 and the NOTE boxes in 4.3–4.5 — they describe what triggers the process (C1 Boundaries).' },
+    B_NO_START:     { c:'C1', w:2, cps:[1,5], sop:['3.0','4.3.3'], what:'There’s no Start shape yet.', why:'Without a starting event, a reader can’t tell what kicks off the process or where to begin reading.', next:'Add one Start (pill) shape at the far left and label it with the triggering event.', nudge:'What event turns someone into the Coffee Brewer?', point:'SOP 3.0 (Coffee Brewer) and 4.3.3 describe the trigger (C1 Boundaries).' },
+    B_MULTI_START:  { c:'C1', w:1, cps:[1,5], sop:['4.3.3'], what:'Your map has {n} Start shapes.', why:'A single-purpose map has one entry point; several Starts usually mean two processes are mixed together.', next:'Decide which event really starts this process and keep one Start.', nudge:'Is there one event that all of these starting points have in common?', point:'Compare your Starts with the NOTE boxes in SOP 4.3–4.5 (C1 Boundaries).' },
+    B_START_VAGUE:  { c:'C1', w:1, cps:[1,5], sop:['3.0','4.3.3'], what:'Your Start is labeled “{label}”, which doesn’t say what event triggers the process.', why:'Readers need the real-world trigger to recognize when this process applies.', next:'Relabel the Start with the triggering event — what someone finds or does.', nudge:'What does someone notice that makes them start brewing?', point:'Look at SOP 4.3.3 and the NOTE under 4.3: who becomes the Coffee Brewer, and when? (C1 Boundaries)' },
+    B_NO_END:       { c:'C1', w:2, cps:[1,5], sop:['4.7'], what:'There’s no End shape yet.', why:'A defined end point tells the reader when the process is complete — one of the “what good looks like” checks.', next:'Add an End shape and label it with the outcome of the process.', nudge:'When is this process done — what is true at that moment?', point:'SOP 4.7 describes the last actions the Coffee Brewer takes (C1 Boundaries).' },
+    B_END_VAGUE:    { c:'C1', w:1, cps:[1,5], sop:['4.7'], what:'Your End is labeled “{label}”, which doesn’t describe the outcome.', why:'An outcome-based End tells the reader what “finished” looks like.', next:'Relabel the End with the result — what is ready, and for whom.', nudge:'What would a colleague see when this process is finished?', point:'SOP 4.7.1 describes the state of the coffee when the Brewer is done (C1 Boundaries).' },
+    B_OUT_OF_SCOPE: { c:'C1', w:1, cps:[1,5], sop:['2.0','4.9'], what:'“{label}” describes work the SOP treats as a separate, periodic activity.', why:'Mapping adjacent processes in detail blurs the boundary; good maps link out to them instead.', next:'Consider a Sub-process / Link shape (double side bars) for it — or leave it off this map.', nudge:'Does this happen every time coffee is brewed, or on a different schedule?', point:'Compare SOP 4.6–4.7 (every brew) with SOP 4.9 (periodic review) (C1 Boundaries).' },
+    B_TEA:          { c:'C1', w:1, cps:[1,5], sop:['2.0'], what:'“{label}” mentions tea.', why:'SOP 2.0 explicitly excludes tea, so including it widens the boundary beyond the SOP.', next:'Check SOP 2.0 and decide whether this belongs on the map.', nudge:'What does the Scope section say this standard does not cover?', point:'SOP 2.0, last paragraph (C1 Boundaries).' },
+    B_BEYOND_END:   { c:'C1', w:1, cps:[1,5], sop:['4.8'], what:'“{label}” happens after coffee is available — beyond the usual end point.', why:'Steps after the outcome usually belong to a different process (here, consumption, SOP 4.8).', next:'Check where your End sits relative to this step.', nudge:'Is drinking the coffee part of making it?', point:'SOP 4.8 describes consumption separately (C1 Boundaries).' },
+
+    D_STAGE_setup:   { c:'C2', w:1, cps:[2,5], sop:['4.1'], what:'Your map moves straight into brewing, but the SOP lists conditions that must be true first.', why:'If preconditions aren’t on the map, a newcomer could start a brew that fails partway.', next:'Re-read SOP 4.1 and decide whether a check belongs near the start.', nudge:'What must be true before anyone can brew?', point:'SOP 4.1.1 lists three set-up requirements (C2 Completeness).' },
+    D_STAGE_blend:   { c:'C2', w:1, cps:[2,5], sop:['4.2','4.3','4.4','4.5'], what:'Your map doesn’t show how the type of brew — and where it’s made — is chosen.', why:'The SOP defines three brews made on different floors; leaving the choice out hides a real variation.', next:'Re-read SOP 4.2 and consider how to show the choice.', nudge:'Does everyone brew the same coffee in the same place?', point:'SOP 4.2 classifies three brews and where each is made (C2 Completeness).' },
+    D_STAGE_brew:    { c:'C2', w:1, cps:[2,5], sop:['4.6.1'], what:'The core brewing activity isn’t on the map yet.', why:'This is the heart of the process — without it, a newcomer couldn’t actually make coffee from your map.', next:'Walk through SOP 4.6.1 and map what the Brewer physically does.', nudge:'What does the Brewer physically do at the machine?', point:'SOP 4.6.1.1–4.6.1.6 lists the steps (C2 Completeness).' },
+    D_STAGE_carafe:  { c:'C2', w:1, cps:[2,5], sop:['4.6.1.5'], what:'The SOP flags a check that prevents a spill, but I don’t see it on your map.', why:'Checks that prevent errors are exactly what newcomers need to see.', next:'Look at the NOTE after SOP 4.6.1.5 and decide how to show it.', nudge:'Is there anything in 4.6 the SOP warns you to check before walking away?', point:'The NOTE after SOP 4.6.1.5 (C2 Completeness).' },
+    D_STAGE_position:{ c:'C2', w:1, cps:[2,5], sop:['4.7.1'], what:'Your map doesn’t show what happens after brewing finishes.', why:'Coffee isn’t available to anyone until it’s positioned for consumption.', next:'Re-read SOP 4.7.1 and map what the Brewer does when brewing completes.', nudge:'Once the brew completes, where does the coffee go?', point:'SOP 4.7.1 describes positioning — and it differs by floor (C2 Completeness).' },
+    D_STAGE_clean:   { c:'C2', w:1, cps:[2,5], sop:['4.7.2','3.0'], what:'The wrap-up activities aren’t on your map.', why:'Leaving them off means spills and a full machine become someone else’s surprise.', next:'Check SOP 4.7.2 and the Coffee Brewer duties in 3.0.', nudge:'What does the Brewer check before leaving the coffee area?', point:'SOP 4.7.2 and the Coffee Brewer responsibilities in 3.0 (C2 Completeness).' },
+    D_FLOOR:         { c:'C2', w:1, cps:[2,5], sop:['4.7.1.1','4.7.1.2'], what:'Your positioning steps seem to cover one floor, but the SOP treats the floors differently.', why:'A newcomer on the other floor would not know what to do.', next:'Compare SOP 4.7.1.1 with 4.7.1.2 and decide how to show the difference.', nudge:'Is positioning the same on every floor?', point:'SOP 4.7.1.1 vs 4.7.1.2 (C2 Completeness).' },
+    D_COMBINED:      { c:'C3', w:1, cps:[2,5], sop:[], what:'“{label}” seems to bundle several actions into one step.', why:'Mixing bundled steps with single actions makes the level of detail uneven.', next:'Either split it, or make neighboring steps similarly broad — aim for a consistent grain.', nudge:'Is this step about the same “size” as the steps around it?', point:'Compare this step’s size with its neighbors (C3 Level of detail).' },
+    D_TOO_FEW:       { c:'C3', w:2, cps:[2,5], sop:['4.6','4.7'], what:'Your map has only {n} activity step(s) so far.', why:'At this level, a newcomer couldn’t actually perform the process from the map.', next:'Walk the SOP section by section and check whether essential activities are missing.', nudge:'Could a brand-new employee make coffee using only your map?', point:'Walk SOP 4.1 through 4.7 in order (C3 Level of detail).' },
+    D_TOO_MANY:      { c:'C3', w:1, cps:[2,5], sop:[], what:'Your map has {n} activity steps, which is very fine-grained.', why:'Too much detail hides the main flow.', next:'Look for runs of tiny steps you could group into one consistent step.', nudge:'Which steps could a reader treat as one action?', point:'Look for 3+ tiny consecutive steps (C3 Level of detail).' },
+    L_EMPTY:         { c:'C4', w:2, cps:[2,4,5], sop:[], what:'{n} shape(s) still have a placeholder or empty label (e.g., “{label}”).', why:'Every shape should tell the reader what happens there.', next:'Double-click each one and give it a short, specific label.', nudge:'Which shapes would a reader not understand yet?', point:'Look for “New step”, “Question?” and similar placeholders (C4 Labels).' },
+    L_NOT_VERB:      { c:'C4', w:1, cps:[2,4,5], sop:[], what:'Some activity labels don’t start with an action, e.g. “{label}”.', why:'Verb + object labels (like “Insert filter”) tell anyone exactly what to do.', next:'Reword activity labels so each begins with a verb.', nudge:'Does every activity label tell the reader what to do?', point:'Check that activity labels start with a verb (C4 Labels).' },
+    L_PERSON:        { c:'C4', w:2, cps:[2,4,5], sop:['4.5.2'], what:'“{label}” names an individual.', why:'Maps should use roles, not people — people change jobs; roles persist.', next:'Replace the person’s name with the role they play.', nudge:'If that person left the company, would this label still make sense?', point:'SOP 4.5.2 — think about the role, not the person (C4 Labels).' },
+    L_LONG:          { c:'C4', w:1, cps:[4,5], sop:[], what:'“{label}” is a long label.', why:'Long labels are hard to scan on a map; the detail belongs in the SOP.', next:'Shorten it to a verb + object (about six words or fewer).', nudge:'What’s the shortest way to say what happens here?', point:'Aim for about six words per label (C4 Labels).' },
+
+    G_NO_EDGES:      { c:'C5', w:3, cps:[3,5], sop:[], what:'Your shapes aren’t connected yet.', why:'Arrows show the sequence; without them a reader can’t follow the flow.', next:'Connect shapes by dragging from the blue dot on a shape’s edge to the next shape.', nudge:'Which step comes first, and what comes after it?', point:'Sequence your steps with arrows (C5 Decision logic).' },
+    G_NO_DECISION:   { c:'C5', w:2, cps:[3,5], sop:['4.7.1','4.7.2'], what:'Your map has no decision points.', why:'The SOP contains real choices; leaving them out makes it look as if one path fits every situation.', next:'Look for “if” statements in the SOP and model them as diamonds.', nudge:'Where does the SOP say “if”?', point:'SOP 4.7.1.1, 4.7.1.2 and 4.7.2 each contain an “if” (C5 Decision logic).' },
+    G_FEW_DECISIONS: { c:'C5', w:1, cps:[3,5], sop:['4.6.1.5','4.7.1','4.7.2'], what:'Your map has one decision point, but the SOP contains more than one “if”.', why:'Each real choice in the procedure affects what a newcomer does next.', next:'Scan the SOP for other choices and check whether they belong on the map.', nudge:'Are there other places where what happens next depends on a condition?', point:'Scan SOP 4.6–4.7 for conditions (C5 Decision logic).' },
+    G_BRANCHES:      { c:'C5', w:2, cps:[3,5], sop:[], what:'The decision “{label}” has only {k} outgoing path(s).', why:'Every decision needs a path for each possible answer, or the reader gets stuck.', next:'Add an arrow for each outcome (e.g., Yes and No).', nudge:'What happens if the answer to “{label}” is the other one?', point:'Each decision needs one arrow per answer (C5 Decision logic).' },
+    G_UNLABELED:     { c:'C5', w:2, cps:[3,5], sop:[], what:'An arrow leaving “{label}” has no label.', why:'Readers can’t tell which path matches which answer.', next:'Double-click the arrow and label it (e.g., Yes / No).', nudge:'How would a reader know which arrow to follow from “{label}”?', point:'Label every arrow that leaves a decision (C5 Decision logic).' },
+    G_NOT_QUESTION:  { c:'C5', w:1, cps:[3,5], sop:[], what:'The decision “{label}” isn’t phrased as a question.', why:'A question (e.g., “Carafe secure?”) makes the possible answers obvious.', next:'Rephrase it as a yes/no or either/or question.', nudge:'What question is being answered at this diamond?', point:'Decision labels should end with “?” (C5 Decision logic).' },
+    G_DEAD_END:      { c:'C5', w:2, cps:[3,5], sop:[], what:'“{label}” has no arrow leaving it.', why:'A dead end leaves the reader stranded — every path should reach an End.', next:'Connect it onward, or — if the process really stops there — finish with an End shape.', nudge:'What happens right after “{label}”?', point:'Trace each path forward from this step (C5 Decision logic).' },
+    G_ORPHAN:        { c:'C5', w:1, cps:[3,5], sop:[], what:'Nothing leads into “{label}”.', why:'If no arrow reaches a step, a reader following the flow never gets there.', next:'Connect the step that comes before it.', nudge:'What happens just before “{label}”?', point:'Every step except Start needs an incoming arrow (C5 Decision logic).' },
+    G_UNREACHABLE:   { c:'C5', w:2, cps:[3,5], sop:[], what:'There’s no continuous path of arrows from your Start to an End.', why:'A reader following the arrows can’t complete the process.', next:'Trace from Start — where does the path break?', nudge:'If you follow the arrows from Start, where do you get stuck?', point:'Trace the arrows from Start to End (C5 Decision logic).' },
+
+    O_DEFAULT:       { c:'C6', w:2, cps:[4,5], sop:['3.0'], what:'Lane “{label}” still has a placeholder name.', why:'Swimlanes show who does what; a placeholder hides the owner.', next:'Select the lane label and rename it after a role in SOP 3.0.', nudge:'Who performs the steps in this lane?', point:'SOP 3.0 lists the roles (C6 Ownership).' },
+    O_PERSON:        { c:'C6', w:2, cps:[4,5], sop:['3.0','4.5.2'], what:'Lane “{label}” is named after a person.', why:'Maps should use roles — people change jobs; roles persist.', next:'Rename the lane after the role this person plays.', nudge:'What role does this person play in the process?', point:'SOP 3.0 lists roles; SOP 4.5.2 shows why names are risky (C6 Ownership).' },
+    O_SINGLE:        { c:'C6', w:2, cps:[4,5], sop:['3.0'], what:'All your steps sit in one lane.', why:'Swimlanes show who does what; the SOP names several roles with different duties.', next:'Check SOP 3.0 for which roles take part, and place steps in their lanes.', nudge:'Does one person really do every step?', point:'SOP 3.0 — compare the Office Manager and Coffee Brewer duties (C6 Ownership).' },
+    O_EMPTY:         { c:'C6', w:1, cps:[4,5], sop:[], what:'Lane “{label}” has no steps in it.', why:'Empty lanes add clutter without telling the reader anything.', next:'Use it for a role that does work, or delete it.', nudge:'Does anyone in this role do something in this process?', point:'Each lane should hold that role’s steps (C6 Ownership).' },
+    O_MISPLACED:     { c:'C6', w:1, cps:[4,5], sop:['3.0'], what:'“{label}” sits in the “{lane}” lane — is that the role that does it?', why:'Steps in the wrong lane assign work to the wrong person.', next:'Check SOP 3.0 and move the step to the owning role’s lane if needed.', nudge:'Who is responsible for “{label}” according to the SOP?', point:'SOP 3.0 — Responsibilities (C6 Ownership).' },
+
+    F_BACKWARD:      { c:'C7', w:1, cps:[4,5], sop:[], what:'{n} arrow(s) run right-to-left.', why:'Maps read left-to-right; backward arrows make readers hunt for the next step.', next:'Rearrange shapes so the main path flows left-to-right; keep backward arrows for genuine loops from a decision.', nudge:'Does your eye move smoothly left-to-right through the map?', point:'Look for arrows pointing left (C7 Flow & layout).' },
+    F_CROSS:         { c:'C7', w:1, cps:[4,5], sop:[], what:'Your map has {n} place(s) where arrows cross.', why:'Crossing lines are a common source of misreading.', next:'Move shapes or reorder lanes to remove crossings — or use a pair of Connectors (A … A) to jump.', nudge:'Where might a reader lose track of which line is which?', point:'Look for crossing arrows (C7 Flow & layout).' },
+    F_START_POS:     { c:'C7', w:1, cps:[4,5], sop:[], what:'Your Start isn’t at the left of the map.', why:'Readers look for the beginning at the top-left.', next:'Move the Start (and the first steps) to the left edge.', nudge:'Where does a reader’s eye land first?', point:'Start should be the left-most shape (C7 Flow & layout).' },
+    F_OVERLAP:       { c:'C7', w:1, cps:[4,5], sop:[], what:'Some shapes overlap (e.g., “{label}”).', why:'Overlapping shapes hide labels and arrows.', next:'Space them out so every label is readable.', nudge:'Is every label fully visible?', point:'Look for overlapping shapes (C7 Flow & layout).' },
+
+    Y_TERMINAL_AS_PROCESS: { c:'C8', w:1, cps:[3,4,5], sop:[], what:'“{label}” looks like a start/end point but uses a process box.', why:'Pills signal where a process begins and ends; boxes signal work.', next:'Use the pill-shaped Start / End symbol instead.', nudge:'Which symbol marks the beginning or end of a process?', point:'See the Key Symbols in the Method tab (C8 Symbols).' },
+    Y_QUESTION_PROCESS:    { c:'C8', w:1, cps:[3,4,5], sop:[], what:'“{label}” is a question inside a process box.', why:'Questions that change the path belong in a decision diamond.', next:'If the answer changes what happens next, use a decision diamond.', nudge:'Does the answer to “{label}” change what happens next?', point:'See the Key Symbols in the Method tab (C8 Symbols).' },
+    Y_PROCESS_BRANCH:      { c:'C8', w:1, cps:[3,4,5], sop:[], what:'“{label}” splits into several solid paths but isn’t a decision.', why:'Branches should come from a diamond so the reader knows what determines the path.', next:'Insert a decision before the split — or, if one path is optional, make it dashed.', nudge:'What decides which path is followed after “{label}”?', point:'Branching belongs to decision diamonds (C8 Symbols).' },
+    Y_CONNECTOR_UNPAIRED:  { c:'C8', w:1, cps:[4,5], sop:[], what:'Connector “{label}” has no matching partner.', why:'Connectors work in pairs with the same letter; a lone one leads nowhere.', next:'Add a second connector with the same letter where the flow continues.', nudge:'Where does the reader land after connector “{label}”?', point:'Connectors come in matching pairs (C8 Symbols).' }
+  },
+
+  // Free-text questions: first matching pattern wins.
+  faq: [
+    { id:'answer', re:/(just|give|tell|show) me (the )?(answer|solution|map)|do it for me|draw it|correct (my|the) map|what('?s| is) the answer|solve/i,
+      a:'I can’t build or correct the map for you — working it out yourself is how the skill sticks. I can help you get unstuck, though: try “Give me a hint” (Level 1 is a nudge, Level 3 explains the concept with an example).' },
+    { id:'lane', re:/swim ?lane|lane|role|owner|who does/i, a:'Swimlanes are the horizontal bands — one per role. Name each after a role (e.g., “Coffee Brewer”), never a person, and put each step in the lane of the role who does it. Add or rename lanes with “+ Lane” and by selecting a lane label. SOP 3.0 lists the roles.' },
+    { id:'decision', re:/decision|diamond|yes|branch|if /i, a:'Use a decision diamond wherever the SOP says “if” or the next step depends on a condition. Phrase it as a question (e.g., “Carafe secure?”) and give it one labeled arrow per answer. Convention: “Yes” goes across, “No” goes down.' },
+    { id:'boundary', re:/start|begin|trigger|boundar|end|finish|stop/i, a:'Boundaries = where the process starts and stops. The Start should name the triggering event; the End should name the outcome. Things outside those boundaries (other processes) are linked out or left off.' },
+    { id:'symbol', re:/symbol|shape|document|form|sub-?process|link|connector|circle|pill/i, a:'Pill = Start/End · rectangle = activity (add a system tag like “Manual”) · diamond = decision · wavy bottom = document/form · double-bar rectangle = a separate linked process · lettered circle = connector (use matching pairs to jump instead of crossing lines).' },
+    { id:'detail', re:/detail|granular|how many steps|level|too much|too little/i, a:'Aim for steps of a similar “size” — each should be one meaningful action a newcomer would take. If one box does five things and the next does one tiny thing, the detail is uneven.' },
+    { id:'label', re:/label|wording|name (a|the) step|write|text/i, a:'Label activities verb + object (“Insert filter”, “Wipe counter”), short and specific. Decisions are questions ending with “?”.' },
+    { id:'connect', re:/connect|arrow|line|link (two|shapes)/i, a:'To connect: hover a shape, then drag from one of its blue dots onto the next shape. Double-click an arrow to label it. Select an arrow to switch it between solid (mandatory) and dashed (optional).' },
+    { id:'delete', re:/delete|remove|undo|mistake/i, a:'Select a shape, arrow or lane and press Delete (or use the Delete button). Undo/Redo are in the toolbar (Ctrl+Z / Ctrl+Y).' },
+    { id:'time', re:/time|how long|minutes/i, a:'TIME' },
+    { id:'next', re:/what (should|do) i do|what next|stuck|help|lost|where (do|should) i start/i, a:'NEXT' },
+    { id:'thanks', re:/thank|thx|cheers/i, a:'You’re welcome — keep going!' }
+  ],
+  fallback:'I’m a built-in coach, so I understand a limited set of questions. I can help with swimlanes, decisions, boundaries, symbols, level of detail, labels, and using the canvas — or try a checkpoint button above.'
+};
+
+/* =====================================================================
+   Utilities
+   ===================================================================== */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+let _uid = 0;
+const uid = p => p + (++_uid).toString(36) + Math.random().toString(36).slice(2,5);
+function fmt(ms){ const s = Math.max(0, Math.ceil(ms/1000)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function hashStr(s){ let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h>>>0).toString(16); }
+function fill(t, v){ return String(t).replace(/\{(\w+)\}/g, (m,k) => (v && v[k] != null) ? esc(v[k]) : ''); }
+function trunc(s, n){ s = String(s||''); return s.length > n ? s.slice(0, n-1) + '…' : s; }
+function download(name, data, type){
+  const blob = data instanceof Blob ? data : new Blob([data], {type});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function toast(msg, ms=4000){
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role','status');
+  document.body.appendChild(t); setTimeout(() => t.remove(), ms);
+}
+function scaleButtons(container, onPick){
+  container.innerHTML = [1,2,3,4,5].map(n => `<button type="button" data-v="${n}" aria-pressed="false">${n}</button>`).join('');
+  container.addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return;
+    $$('button', container).forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    onPick(+b.dataset.v);
+  });
+}
+
+/* =====================================================================
+   State
+   ===================================================================== */
+const params = new URLSearchParams(location.search);
+const COACH_ON = !['off','0','false','no'].includes((params.get('coach') || params.get('ai') || '').toLowerCase());
+const state = {
+  phase: 'welcome', participant: '', condition: COACH_ON ? 'coach' : 'no-coach',
+  minutes: Object.assign({}, GAME_CONFIG.minutes),
+  t0: null, startedAt: null, phaseEnd: null, timerId: null, snapTimer: null,
+  baseline: { confidence: null, answers: [] },
+  flow: null, undo: [], redo: [], sel: null, zoom: 1, grid: true, numbering: false, locked: true,
+  events: [], snapshots: [], coachMsgs: [], requests: 0, lastCp: {}, dismissed: new Set(),
+  cp5: [], cp5Open: null, finalConfidence: null, reflection: {}, reflSet: null, debrief: {},
+  finalAnalysis: null, draftAnalysis: null, finalFlow: null, stepper: {},
+  exported: false, warned5: false, coachOpen: false, flash: new Set(), resetting: false, ended: null
+};
+[['instruction','teach'],['reading','read'],['build','build']].forEach(([k,p]) => {
+  const v = parseFloat(params.get(p)); if (v > 0 && v <= 180) state.minutes[k] = v;
+});
+function now(){ return state.t0 ? Date.now() - state.t0 : 0; }
+function log(type, detail = {}){ state.events.push(Object.assign({ t: now(), phase: state.phase, type }, detail)); }
+
+/* =====================================================================
+   Geometry & model
+   ===================================================================== */
+const TITLE_H = 44, LABEL_W = 44, LANE_H = 170, MIN_W = 1800;
+const DIM = {
+  start:{w:124,h:46}, end:{w:124,h:46}, process:{w:150,h:72}, decision:{w:140,h:90},
+  subprocess:{w:150,h:66}, document:{w:140,h:66}, connector:{w:38,h:38}
+};
+const TYPE_NAME = { start:'Start', end:'End', process:'Process step', decision:'Decision', subprocess:'Sub-process / Link', document:'Document / Form', connector:'Connector' };
+const dim = n => DIM[n.type] || DIM.process;
+function laneTop(flow, laneId){
+  let y = TITLE_H;
+  for (const l of flow.lanes){ if (l.id === laneId) return y; y += LANE_H; }
+  return TITLE_H;
+}
+function laneIndex(flow, laneId){ return flow.lanes.findIndex(l => l.id === laneId); }
+const nodeY = (n, flow = state.flow) => laneTop(flow, n.laneId) + n.oy;
+function canvasH(flow){ return TITLE_H + flow.lanes.length * LANE_H; }
+function canvasW(flow){ return Math.max(MIN_W, ...flow.nodes.map(n => n.x + dim(n).w/2 + 160)); }
+function newFlow(){
+  return { processName: 'Process name (double-click to edit)',
+    lanes: [ { id: uid('L'), name: 'Role 1' }, { id: uid('L'), name: 'Role 2' } ], nodes: [], edges: [] };
+}
+const getNode = id => state.flow.nodes.find(n => n.id === id);
+const getEdge = id => state.flow.edges.find(e => e.id === id);
+const getLane = id => state.flow.lanes.find(l => l.id === id);
+
+function laneAt(flow, absY){
+  let idx = Math.floor((absY - TITLE_H) / LANE_H);
+  idx = clamp(idx, 0, flow.lanes.length - 1);
+  return flow.lanes[idx];
+}
+function placeNode(n, x, absY, flow = state.flow){
+  const d = dim(n);
+  const lane = laneAt(flow, absY);
+  const top = laneTop(flow, lane.id);
+  n.laneId = lane.id;
+  n.x = Math.max(LABEL_W + d.w/2 + 8, x);
+  const y = clamp(absY, top + d.h/2 + 8, top + LANE_H - d.h/2 - 8);
+  n.oy = y - top;
+}
+function ports(n, flow){
+  const d = dim(n), cx = n.x, cy = nodeY(n, flow);
+  return { c:[cx,cy], l:[cx-d.w/2,cy], r:[cx+d.w/2,cy], t:[cx,cy-d.h/2], b:[cx,cy+d.h/2], w:d.w, h:d.h };
+}
+function route(s, t, flow){
+  const P = ports(s, flow), Q = ports(t, flow);
+  const dx = Q.c[0] - P.c[0], dy = Q.c[1] - P.c[1];
+  if (dx > (P.w/2 + Q.w/2 + 16)){
+    const p1 = P.r, p2 = Q.l, mx = Math.round((p1[0] + p2[0]) / 2);
+    if (Math.abs(p1[1]-p2[1]) < 1) return [p1, p2];
+    return [p1, [mx,p1[1]], [mx,p2[1]], p2];
+  }
+  if (dy > (P.h/2 + Q.h/2 + 10)){
+    const p1 = P.b, p2 = Q.t, my = Math.round((p1[1] + p2[1]) / 2);
+    if (Math.abs(p1[0]-p2[0]) < 1) return [p1, p2];
+    return [p1, [p1[0],my], [p2[0],my], p2];
+  }
+  if (dy < -(P.h/2 + Q.h/2 + 10)){
+    const p1 = P.t, p2 = Q.b, my = Math.round((p1[1] + p2[1]) / 2);
+    if (Math.abs(p1[0]-p2[0]) < 1) return [p1, p2];
+    return [p1, [p1[0],my], [p2[0],my], p2];
+  }
+  // target to the left on roughly the same row: loop underneath
+  const p1 = P.b, p2 = Q.b, y = Math.max(p1[1], p2[1]) + 26;
+  return [p1, [p1[0],y], [p2[0],y], p2];
+}
+function segs(pts){ const out = []; for (let i=0;i<pts.length-1;i++) out.push([pts[i], pts[i+1]]); return out; }
+function crossings(flow){
+  const byId = Object.fromEntries(flow.nodes.map(n => [n.id, n]));
+  const R = flow.edges.filter(e => byId[e.source] && byId[e.target]).map(e => ({ e, s: segs(route(byId[e.source], byId[e.target], flow)) }));
+  let count = 0; const m = 3;
+  for (let i=0;i<R.length;i++) for (let j=i+1;j<R.length;j++){
+    const a = R[i], b = R[j];
+    if ([a.e.source,a.e.target].some(x => x === b.e.source || x === b.e.target)) continue;
+    let hit = false;
+    for (const s1 of a.s){ for (const s2 of b.s){
+      const h = s1[0][1] === s1[1][1] ? s1 : (s2[0][1] === s2[1][1] ? s2 : null);
+      const v = s1[0][0] === s1[1][0] ? s1 : (s2[0][0] === s2[1][0] ? s2 : null);
+      if (!h || !v || h === v) continue;
+      const hx1 = Math.min(h[0][0], h[1][0]), hx2 = Math.max(h[0][0], h[1][0]), hy = h[0][1];
+      const vy1 = Math.min(v[0][1], v[1][1]), vy2 = Math.max(v[0][1], v[1][1]), vx = v[0][0];
+      if (vx > hx1+m && vx < hx2-m && hy > vy1+m && hy < vy2-m){ hit = true; break; }
+    } if (hit) break; }
+    if (hit) count++;
+  }
+  return count;
+}
+function stepNumbers(flow){
+  const order = flow.nodes.filter(n => ['process','decision','subprocess','document'].includes(n.type))
+    .slice().sort((a,b) => (a.x - b.x) || (laneIndex(flow,a.laneId) - laneIndex(flow,b.laneId)) || (a.oy - b.oy));
+  const map = {}; order.forEach((n,i) => map[n.id] = '1.' + (i+1)); return map;
+}
+function flowJSON(flow){
+  const nums = stepNumbers(flow);
+  return {
+    processName: flow.processName,
+    lanes: flow.lanes.map((l,i) => ({ id:l.id, name:l.name, order:i })),
+    nodes: flow.nodes.map(n => ({ id:n.id, type:n.type, label:n.label, systemTag:n.systemTag || null, laneId:n.laneId, x:Math.round(n.x), y:Math.round(nodeY(n, flow)), stepNumber: nums[n.id] || null })),
+    edges: flow.edges.map(e => ({ id:e.id, source:e.source, target:e.target, label:e.label || null, style:e.style || 'mandatory' }))
+  };
+}
+const hashFlow = (flow = state.flow) => hashStr(JSON.stringify(flowJSON(flow)));
+
+/* =====================================================================
+   SVG rendering
+   ===================================================================== */
+function wrapText(text, maxChars, maxLines){
+  const words = String(text || '').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+  const lines = []; let cur = '';
+  for (let w of words){
+    while (w.length > maxChars){ if (cur){ lines.push(cur); cur=''; } lines.push(w.slice(0, maxChars)); w = w.slice(maxChars); }
+    if (!cur) cur = w; else if ((cur + ' ' + w).length <= maxChars) cur += ' ' + w; else { lines.push(cur); cur = w; }
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > maxLines){ const keep = lines.slice(0, maxLines); keep[maxLines-1] = trunc(keep[maxLines-1] + ' …', maxChars+1); return keep; }
+  return lines;
+}
+function textBlock(lines, cx, cy, size, weight, color){
+  const lh = size * 1.22, y0 = cy - (lines.length - 1) * lh / 2 + size * 0.35;
+  return `<text x="${cx}" y="${y0}" text-anchor="middle" font-size="${size}" ${weight ? `font-weight="${weight}"` : ''} fill="${color||'#111827'}" pointer-events="none">` +
+    lines.map((l,i) => `<tspan x="${cx}" y="${(y0 + i*lh).toFixed(1)}">${esc(l)}</tspan>`).join('') + `</text>`;
+}
+function nodeMarkup(n, flow, o, nums){
+  const d = dim(n), cx = n.x, cy = nodeY(n, flow);
+  const l = cx - d.w/2, t = cy - d.h/2, r = cx + d.w/2, b = cy + d.h/2;
+  const selected = o.sel && o.sel.kind === 'node' && o.sel.id === n.id;
+  const hl = o.highlight && o.highlight[n.id];
+  const flash = o.flash && o.flash.has(n.id);
+  const stroke = flash ? '#dc2626' : hl === 'added' ? '#15803d' : hl === 'changed' ? '#b45309' : selected ? '#1d4ed8' : '#374151';
+  const sw = (selected || hl || flash) ? 2.8 : 1.4;
+  let g = `<g data-node="${n.id}" class="node${selected ? ' sel' : ''}">`;
+  const label = n.label || '';
+  if (n.type === 'start' || n.type === 'end'){
+    g += `<rect x="${l}" y="${t}" width="${d.w}" height="${d.h}" rx="${d.h/2}" fill="#eef2f7" stroke="${stroke}" stroke-width="${sw}"/>`;
+    g += textBlock(wrapText(label, 17, 2), cx, cy, 12.5, 600);
+  } else if (n.type === 'process'){
+    g += `<rect x="${l}" y="${t}" width="${d.w}" height="${d.h}" rx="8" fill="#ffffff" stroke="${stroke}" stroke-width="${sw}"/>`;
+    if (n.systemTag){
+      g += `<path d="M${l+0.7},${t+18} H${r-0.7}" stroke="${stroke}" stroke-width="1"/><text x="${cx}" y="${t+13}" text-anchor="middle" font-size="10.5" fill="#4b5563" pointer-events="none">${esc(trunc(n.systemTag,22))}</text>`;
+      g += textBlock(wrapText(label, 20, 3), cx, cy + 9, 12.5);
+    } else g += textBlock(wrapText(label, 20, 4), cx, cy, 12.5);
+  } else if (n.type === 'decision'){
+    g += `<polygon points="${cx},${t} ${r},${cy} ${cx},${b} ${l},${cy}" fill="#f8fafc" stroke="${stroke}" stroke-width="${sw}"/>`;
+    g += textBlock(wrapText(label, 14, 3), cx, cy, 12);
+  } else if (n.type === 'subprocess'){
+    g += `<rect x="${l}" y="${t}" width="${d.w}" height="${d.h}" fill="#ffffff" stroke="${stroke}" stroke-width="${sw}"/>`;
+    g += `<path d="M${l+11},${t} V${b} M${r-11},${t} V${b}" stroke="${stroke}" stroke-width="1.2"/>`;
+    g += textBlock(wrapText(label, 17, 3), cx, cy, 12.5);
+  } else if (n.type === 'document'){
+    const w = d.w;
+    g += `<path d="M${l},${t} H${r} V${b-9} Q${r-w/4},${b+5} ${cx},${b-9} T${l},${b-9} Z" fill="#ffffff" stroke="${stroke}" stroke-width="${sw}"/>`;
+    g += textBlock(wrapText(label, 18, 3), cx, cy - 5, 12.5);
+  } else if (n.type === 'connector'){
+    g += `<circle cx="${cx}" cy="${cy}" r="${d.w/2}" fill="#eef2f7" stroke="${stroke}" stroke-width="${sw}"/>`;
+    g += textBlock([trunc(label,3)], cx, cy, 14, 700);
+  }
+  if (o.numbering && nums[n.id]) g += `<text x="${l}" y="${t-5}" font-size="10.5" font-weight="600" fill="#6b7280" pointer-events="none">${nums[n.id]}</text>`;
+  if (o.interactive){
+    const P = ports(n, flow);
+    for (const k of ['l','r','t','b']) g += `<circle class="handle" data-handle="${n.id}" cx="${P[k][0]}" cy="${P[k][1]}" r="6.5" fill="#1d4ed8" stroke="#ffffff" stroke-width="2"/>`;
+  }
+  return g + '</g>';
+}
+function labelPos(pts){
+  for (let i=0;i<pts.length-1;i++){
+    const a = pts[i], b = pts[i+1], len = Math.hypot(b[0]-a[0], b[1]-a[1]);
+    if (len >= 24){ const f = Math.min(30, len/2) / len; return [a[0] + (b[0]-a[0])*f, a[1] + (b[1]-a[1])*f]; }
+  }
+  return pts[0];
+}
+function edgeMarkup(e, flow, o, byId){
+  const s = byId[e.source], t = byId[e.target]; if (!s || !t) return '';
+  const pts = route(s, t, flow);
+  const d = 'M' + pts.map(p => p[0] + ',' + p[1]).join(' L');
+  const sel = o.sel && o.sel.kind === 'edge' && o.sel.id === e.id;
+  const color = sel ? '#1d4ed8' : '#374151';
+  let g = `<g data-edge="${e.id}">`;
+  if (o.interactive) g += `<path d="${d}" fill="none" stroke="transparent" stroke-width="14" style="cursor:pointer"/>`;
+  g += `<path d="${d}" fill="none" stroke="${color}" stroke-width="${sel ? 2.4 : 1.5}" ${e.style === 'optional' ? 'stroke-dasharray="6 5"' : ''} marker-end="url(#${o.idp}-${sel ? 'arrS' : 'arr'})" pointer-events="${o.interactive ? 'stroke' : 'none'}"/>`;
+  if (e.label){
+    const m = labelPos(pts), w = Math.max(24, e.label.length * 6.6 + 12);
+    g += `<rect x="${(m[0]-w/2).toFixed(1)}" y="${(m[1]-9).toFixed(1)}" width="${w.toFixed(1)}" height="18" rx="4" fill="#ffffff" stroke="#d1d5db"/>`;
+    g += `<text x="${m[0].toFixed(1)}" y="${(m[1]+4).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="600" fill="#111827" pointer-events="none">${esc(e.label)}</text>`;
+  }
+  return g + '</g>';
+}
+function svgMarkup(flow, o = {}){
+  o = Object.assign({ idp:'m', interactive:false, grid:false, numbering:false }, o);
+  const H = canvasH(flow);
+  const W = o.tight ? Math.max(780, ...flow.nodes.map(n => n.x + dim(n).w/2 + 50)) : canvasW(flow);
+  const byId = Object.fromEntries(flow.nodes.map(n => [n.id, n]));
+  const nums = stepNumbers(flow);
+  let s = `<defs>
+    <marker id="${o.idp}-arr" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#374151"/></marker>
+    <marker id="${o.idp}-arrS" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/></marker>
+    <pattern id="${o.idp}-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#e8eaee" stroke-width="1"/></pattern></defs>`;
+  s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>`;
+  // title bar + legend
+  const titleW = Math.min(620, 40 + (flow.processName || '').length * 9.5);
+  s += `<g data-title="1"><rect x="0" y="0" width="${W}" height="${TITLE_H}" fill="#f3f4f6" stroke="#9ca3af"/>`;
+  s += `<text x="14" y="28" font-size="17" font-weight="700" fill="#111827">${esc(trunc(flow.processName, 64))}</text></g>`;
+  const lx = Math.max(titleW + 30, 480);
+  s += `<g pointer-events="none" font-size="11" fill="#4b5563">
+    <text x="${lx}" y="27" font-weight="700">Legend</text>
+    <rect x="${lx+50}" y="15" width="20" height="14" rx="3" fill="#fff" stroke="#374151"/><text x="${lx+76}" y="27">Process</text>
+    <polygon points="${lx+138},14 ${lx+148},22 ${lx+138},30 ${lx+128},22" fill="#fff" stroke="#374151"/><text x="${lx+154}" y="27">Decision</text>
+    <rect x="${lx+212}" y="15" width="24" height="14" rx="7" fill="#eef2f7" stroke="#374151"/><text x="${lx+242}" y="27">Start / End</text>
+    <path d="M${lx+312},22 h22" stroke="#374151" stroke-width="1.5"/><text x="${lx+340}" y="27">Mandatory</text>
+    <path d="M${lx+408},22 h22" stroke="#374151" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${lx+436}" y="27">Optional</text></g>`;
+  // lanes
+  let y = TITLE_H;
+  flow.lanes.forEach((l, i) => {
+    const sel = o.sel && o.sel.kind === 'lane' && o.sel.id === l.id;
+    s += `<g data-lane="${l.id}"><rect x="0" y="${y}" width="${W}" height="${LANE_H}" fill="${i % 2 ? '#fafbfc' : '#ffffff'}" stroke="#9ca3af"/>`;
+    if (o.grid) s += `<rect x="${LABEL_W}" y="${y}" width="${W - LABEL_W}" height="${LANE_H}" fill="url(#${o.idp}-grid)" pointer-events="none"/>`;
+    s += `<rect data-lanelabel="${l.id}" x="0" y="${y}" width="${LABEL_W}" height="${LANE_H}" fill="${sel ? '#dbe6fd' : '#f3f4f6'}" stroke="#9ca3af" ${o.interactive ? 'style="cursor:pointer"' : ''}/>`;
+    s += `<text transform="translate(${LABEL_W/2 + 5},${y + LANE_H/2}) rotate(-90)" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2937" pointer-events="none">${esc(trunc(l.name, 24))}</text></g>`;
+    y += LANE_H;
+  });
+  s += flow.edges.map(e => edgeMarkup(e, flow, o, byId)).join('');
+  s += flow.nodes.map(n => nodeMarkup(n, flow, o, nums)).join('');
+  return { s, W, H };
+}
+function standaloneSvg(flow, o = {}){
+  const m = svgMarkup(flow, Object.assign({ idp: 'x' + Math.random().toString(36).slice(2,6) }, o));
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${m.W}" height="${m.H}" viewBox="0 0 ${m.W} ${m.H}" font-family="Segoe UI, Helvetica, Arial, sans-serif">${m.s}</svg>`;
+}
+
+/* ---------- live canvas ---------- */
+const canvas = $('#canvas'), wrapEl = $('#canvasWrap');
+let drag = null;
+function render(){
+  if (!state.flow) return;
+  const m = svgMarkup(state.flow, { idp:'cv', interactive: !state.locked, grid: state.grid, numbering: state.numbering, sel: state.sel, flash: state.flash });
+  let extra = '';
+  if (drag && drag.kind === 'connect' && drag.x != null){
+    const n = getNode(drag.from);
+    if (n) extra = `<line x1="${n.x}" y1="${nodeY(n)}" x2="${drag.x}" y2="${drag.y}" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="5 4" pointer-events="none"/>`;
+  }
+  canvas.setAttribute('viewBox', `0 0 ${m.W} ${m.H}`);
+  canvas.setAttribute('width', Math.round(m.W * state.zoom));
+  canvas.setAttribute('height', Math.round(m.H * state.zoom));
+  canvas.innerHTML = m.s + extra;
+  wrapEl.classList.toggle('locked', state.locked);
+}
+function svgPoint(evt){
+  const pt = canvas.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(canvas.getScreenCTM().inverse());
+}
+
+/* ---------- history ---------- */
+function pushHistory(snap){
+  state.undo.push(snap || JSON.stringify(state.flow));
+  if (state.undo.length > 150) state.undo.shift();
+  state.redo = [];
+  updateToolbar();
+}
+function edited(op, detail = {}){ log('edit', Object.assign({ op }, detail)); updateToolbar(); renderPropbar(); }
+function undo(){
+  if (state.locked || !state.undo.length) return;
+  state.redo.push(JSON.stringify(state.flow)); state.flow = JSON.parse(state.undo.pop());
+  state.sel = null; render(); edited('undo');
+}
+function redo(){
+  if (state.locked || !state.redo.length) return;
+  state.undo.push(JSON.stringify(state.flow)); state.flow = JSON.parse(state.redo.pop());
+  state.sel = null; render(); edited('redo');
+}
+
+/* ---------- model operations ---------- */
+const DEFAULT_LABEL = { start:'Start', end:'End', process:'New step', decision:'Question?', subprocess:'Linked process', document:'Document' };
+function nextConnectorLetter(){
+  const counts = {};
+  state.flow.nodes.filter(n => n.type === 'connector').forEach(n => { const k = (n.label || '').toUpperCase(); counts[k] = (counts[k] || 0) + 1; });
+  const open = Object.keys(counts).find(k => counts[k] === 1); if (open) return open;
+  for (let i=0;i<26;i++){ const L = String.fromCharCode(65+i); if (!counts[L]) return L; }
+  return 'Z';
+}
+function addNode(type, x, y){
+  if (state.locked) return;
+  pushHistory();
+  const n = { id: uid('N'), type, label: type === 'connector' ? nextConnectorLetter() : DEFAULT_LABEL[type], systemTag: null, laneId: state.flow.lanes[0].id, x: 0, oy: 0 };
+  if (state.grid){ x = Math.round(x/10)*10; y = Math.round(y/10)*10; }
+  placeNode(n, x, y);
+  state.flow.nodes.push(n);
+  state.sel = { kind:'node', id:n.id };
+  render(); edited('addNode', { id:n.id, nodeType:type, lane: laneName(n.laneId) });
+  if (type !== 'connector') editNodeLabel(n.id);
+}
+function laneName(id){ const l = getLane(id); return l ? l.name : ''; }
+function addEdge(from, to){
+  if (from === to) return;
+  if (state.flow.edges.some(e => e.source === from && e.target === to)) return;
+  pushHistory();
+  const s = getNode(from);
+  let label = '';
+  if (s && s.type === 'decision'){
+    const outs = state.flow.edges.filter(e => e.source === from).map(e => (e.label || '').toLowerCase());
+    label = !outs.includes('yes') ? 'Yes' : (!outs.includes('no') ? 'No' : '');
+  }
+  const e = { id: uid('E'), source: from, target: to, label, style: 'mandatory' };
+  state.flow.edges.push(e);
+  state.sel = { kind:'edge', id:e.id };
+  render(); edited('addEdge', { id:e.id, fromType: s ? s.type : null });
+  if (s && s.type === 'decision') editEdgeLabel(e.id);
+}
+function deleteSelection(){
+  if (state.locked || !state.sel) return;
+  const sel = state.sel;
+  if (sel.kind === 'node'){
+    const n = getNode(sel.id); if (!n) return;
+    pushHistory();
+    state.flow.nodes = state.flow.nodes.filter(x => x.id !== sel.id);
+    state.flow.edges = state.flow.edges.filter(e => e.source !== sel.id && e.target !== sel.id);
+    state.sel = null; render(); edited('deleteNode', { id: sel.id, nodeType: n.type });
+  } else if (sel.kind === 'edge'){
+    pushHistory();
+    state.flow.edges = state.flow.edges.filter(e => e.id !== sel.id);
+    state.sel = null; render(); edited('deleteEdge', { id: sel.id });
+  } else if (sel.kind === 'lane') deleteLane(sel.id);
+}
+function addLane(){
+  if (state.locked) return;
+  pushHistory();
+  const l = { id: uid('L'), name: 'Role ' + (state.flow.lanes.length + 1) };
+  state.flow.lanes.push(l); state.sel = { kind:'lane', id:l.id };
+  render(); edited('addLane', { id:l.id });
+  setTimeout(() => { const i = $('#pbLaneName'); if (i){ i.focus(); i.select(); } }, 30);
+}
+function moveLane(id, dir){
+  const i = laneIndex(state.flow, id), j = i + dir;
+  if (state.locked || i < 0 || j < 0 || j >= state.flow.lanes.length) return;
+  pushHistory();
+  const ls = state.flow.lanes; [ls[i], ls[j]] = [ls[j], ls[i]];
+  render(); edited('moveLane', { id, dir });
+}
+function deleteLane(id){
+  if (state.locked) return;
+  if (state.flow.lanes.length <= 1){ toast('A map needs at least one lane.'); return; }
+  const inLane = state.flow.nodes.filter(n => n.laneId === id);
+  if (inLane.length && !confirm(`Delete this lane and the ${inLane.length} shape(s) in it?`)) return;
+  pushHistory();
+  const ids = new Set(inLane.map(n => n.id));
+  state.flow.nodes = state.flow.nodes.filter(n => !ids.has(n.id));
+  state.flow.edges = state.flow.edges.filter(e => !ids.has(e.source) && !ids.has(e.target));
+  state.flow.lanes = state.flow.lanes.filter(l => l.id !== id);
+  state.sel = null; render(); edited('deleteLane', { id, removedNodes: inLane.length });
+}
+function clearCanvas(){
+  if (state.locked || !state.flow.nodes.length) return;
+  if (!confirm('Clear all shapes and arrows from the canvas? (Lanes are kept. You can Undo.)')) return;
+  pushHistory();
+  state.flow.nodes = []; state.flow.edges = []; state.sel = null;
+  render(); edited('clear');
+}
+function select(sel){
+  const same = (!sel && !state.sel) || (sel && state.sel && sel.kind === state.sel.kind && sel.id === state.sel.id);
+  if (same) return;
+  state.sel = sel; render(); renderPropbar();
+}
+
+/* ---------- inline editor ---------- */
+const editor = $('#inlineEditor');
+let editorCommit = null;
+function openEditor(x, y, w, h, value, onCommit, multiline = true){
+  const z = state.zoom;
+  editor.style.left = (x * z) + 'px'; editor.style.top = (y * z) + 'px';
+  editor.style.width = Math.max(90, w * z) + 'px'; editor.style.height = Math.max(30, h * z) + 'px';
+  editor.style.fontSize = Math.max(12, 13 * z) + 'px';
+  editor.value = value; editor.classList.remove('hidden'); editor.dataset.multi = multiline ? '1' : '';
+  editorCommit = onCommit; editor.focus(); editor.select();
+}
+function closeEditor(commit){
+  if (editor.classList.contains('hidden')) return;
+  const fn = editorCommit; editorCommit = null;
+  editor.classList.add('hidden');
+  if (commit && fn) fn(editor.value.replace(/\s*\n\s*/g, ' ').trim());
+}
+editor.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); closeEditor(true); }
+  else if (e.key === 'Escape'){ e.preventDefault(); closeEditor(false); }
+  e.stopPropagation();
+});
+editor.addEventListener('blur', () => closeEditor(true));
+function editNodeLabel(id){
+  const n = getNode(id); if (!n || state.locked) return;
+  const d = dim(n), cy = nodeY(n);
+  const w = n.type === 'decision' ? d.w * 0.85 : Math.max(d.w, 120);
+  openEditor(n.x - w/2, cy - Math.max(d.h,40)/2, w, Math.max(d.h, 40), n.label, v => {
+    if (v === n.label) return;
+    if (n.type === 'connector') v = v.slice(0,3).toUpperCase();
+    pushHistory(); n.label = v; render(); edited('relabelNode', { id, nodeType:n.type, label:v });
+  });
+}
+function editEdgeLabel(id){
+  const e = getEdge(id); if (!e || state.locked) return;
+  const s = getNode(e.source), t = getNode(e.target); if (!s || !t) return;
+  const m = labelPos(route(s, t, state.flow));
+  openEditor(m[0] - 55, m[1] - 15, 110, 30, e.label || '', v => {
+    if (v === (e.label || '')) return;
+    pushHistory(); e.label = v; render(); edited('relabelEdge', { id, label:v });
+  }, false);
+}
+function editTitle(){
+  if (state.locked) return;
+  openEditor(8, 6, 460, 32, state.flow.processName, v => {
+    if (!v || v === state.flow.processName) return;
+    pushHistory(); state.flow.processName = v; render(); edited('renameProcess', { label:v });
+  }, false);
+}
+
+/* ---------- pointer interactions ---------- */
+canvas.addEventListener('pointerdown', e => {
+  if (state.locked || e.button !== 0) return;
+  if (!editor.classList.contains('hidden')) closeEditor(true);
+  const h = e.target.closest('[data-handle]');
+  if (h){ drag = { kind:'connect', from: h.getAttribute('data-handle'), x:null, y:null }; canvas.setPointerCapture(e.pointerId); e.preventDefault(); return; }
+  const nd = e.target.closest('[data-node]');
+  if (nd){
+    const id = nd.getAttribute('data-node'), n = getNode(id), p = svgPoint(e);
+    select({ kind:'node', id });
+    drag = { kind:'node', id, sx:p.x, sy:p.y, nx:n.x, ny:nodeY(n), lane0:n.laneId, moved:false, before:JSON.stringify(state.flow) };
+    canvas.setPointerCapture(e.pointerId); return;
+  }
+  const ed = e.target.closest('[data-edge]'); if (ed){ select({ kind:'edge', id: ed.getAttribute('data-edge') }); return; }
+  const ll = e.target.closest('[data-lanelabel]'); if (ll){ select({ kind:'lane', id: ll.getAttribute('data-lanelabel') }); return; }
+  if (state.sel) select(null);
+});
+canvas.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = svgPoint(e);
+  if (drag.kind === 'node'){
+    const dx = p.x - drag.sx, dy = p.y - drag.sy;
+    if (!drag.moved && Math.hypot(dx, dy) < 3) return;
+    drag.moved = true;
+    let nx = drag.nx + dx, ny = drag.ny + dy;
+    if (state.grid){ nx = Math.round(nx/10)*10; ny = Math.round(ny/10)*10; }
+    placeNode(getNode(drag.id), nx, ny); render();
+  } else if (drag.kind === 'connect'){ drag.x = p.x; drag.y = p.y; render(); }
+});
+function endDrag(e){
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (d.kind === 'node' && d.moved){
+    pushHistory(d.before);
+    const n = getNode(d.id);
+    edited(n.laneId !== d.lane0 ? 'laneChangeNode' : 'moveNode', { id:d.id, nodeType:n.type, lane: laneName(n.laneId) });
+    render();
+  } else if (d.kind === 'connect'){
+    if (e && e.type === 'pointerup'){
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const tn = el && el.closest && el.closest('[data-node]');
+      if (tn && tn.getAttribute('data-node') !== d.from) addEdge(d.from, tn.getAttribute('data-node'));
+    }
+    render();
+  }
+}
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+canvas.addEventListener('dblclick', e => {
+  if (state.locked) return;
+  // pointer capture can retarget the event to the <svg>, so hit-test the real point
+  const tgt = document.elementFromPoint(e.clientX, e.clientY) || e.target;
+  if (!tgt || !tgt.closest) return;
+  const nd = tgt.closest('[data-node]'); if (nd){ editNodeLabel(nd.getAttribute('data-node')); return; }
+  const ed = tgt.closest('[data-edge]'); if (ed){ editEdgeLabel(ed.getAttribute('data-edge')); return; }
+  const ll = tgt.closest('[data-lanelabel]'); if (ll){ select({ kind:'lane', id: ll.getAttribute('data-lanelabel') }); setTimeout(() => { const i = $('#pbLaneName'); if (i){ i.focus(); i.select(); } }, 20); return; }
+  if (tgt.closest('[data-title]')) editTitle();
+});
+wrapEl.addEventListener('dragover', e => { if (!state.locked){ e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } });
+wrapEl.addEventListener('drop', e => {
+  e.preventDefault(); if (state.locked) return;
+  const type = e.dataTransfer.getData('text/plain'); if (!DIM[type]) return;
+  const p = svgPoint(e); addNode(type, p.x, p.y);
+});
+document.addEventListener('keydown', e => {
+  if (state.phase !== 'build' || state.locked) return;
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z' && !e.shiftKey){ e.preventDefault(); undo(); return; }
+  if ((e.ctrlKey || e.metaKey) && (k === 'y' || (k === 'z' && e.shiftKey))){ e.preventDefault(); redo(); return; }
+  if (!state.sel) return;
+  if (k === 'delete' || k === 'backspace'){ e.preventDefault(); deleteSelection(); return; }
+  if (k === 'enter'){
+    e.preventDefault();
+    if (state.sel.kind === 'node') editNodeLabel(state.sel.id);
+    else if (state.sel.kind === 'edge') editEdgeLabel(state.sel.id);
+    return;
+  }
+  if (state.sel.kind === 'node' && k.startsWith('arrow')){
+    e.preventDefault();
+    const n = getNode(state.sel.id); const step = e.shiftKey ? 40 : 10;
+    const before = JSON.stringify(state.flow), lane0 = n.laneId;
+    const dx = k === 'arrowleft' ? -step : k === 'arrowright' ? step : 0;
+    const dy = k === 'arrowup' ? -step : k === 'arrowdown' ? step : 0;
+    let ny = nodeY(n) + dy;
+    if (dy){ const top = laneTop(state.flow, n.laneId), d = dim(n);
+      if (dy > 0 && ny > top + LANE_H - d.h/2 - 8) ny = top + LANE_H + d.h/2 + 10;
+      if (dy < 0 && ny < top + d.h/2 + 8) ny = top - d.h/2 - 10; }
+    placeNode(n, n.x + dx, ny); pushHistory(before); render();
+    edited(n.laneId !== lane0 ? 'laneChangeNode' : 'moveNode', { id:n.id, nodeType:n.type, key:true });
+  }
+});
+
+/* ---------- toolbar & properties ---------- */
+function symbolIcon(type, w = 30, h = 20){
+  const s = (inner) => `<svg width="${w}" height="${h}" viewBox="0 0 30 20" aria-hidden="true">${inner}</svg>`;
+  const st = 'fill="#fff" stroke="#374151" stroke-width="1.3"';
+  switch (type){
+    case 'start': case 'end': return s(`<rect x="2" y="4" width="26" height="12" rx="6" fill="#eef2f7" stroke="#374151" stroke-width="1.3"/>`);
+    case 'process': return s(`<rect x="3" y="2" width="24" height="16" rx="2.5" ${st}/>`);
+    case 'decision': return s(`<polygon points="15,1 28,10 15,19 2,10" ${st}/>`);
+    case 'subprocess': return s(`<rect x="3" y="2" width="24" height="16" ${st}/><path d="M7,2V18M23,2V18" stroke="#374151" stroke-width="1.1"/>`);
+    case 'document': return s(`<path d="M3,2H27V15Q21,20 15,15T3,15Z" ${st}/>`);
+    case 'connector': return s(`<circle cx="15" cy="10" r="8" fill="#eef2f7" stroke="#374151" stroke-width="1.3"/><text x="15" y="13.5" font-size="9" text-anchor="middle" font-weight="700">A</text>`);
+  }
+  return '';
+}
+function buildToolbar(){
+  const pal = ['start','end','process','decision','subprocess','document','connector'];
+  $('#toolbar').innerHTML =
+    pal.map(t => `<button class="pal" draggable="true" data-type="${t}" title="Drag into a lane, or click to add">${symbolIcon(t, 26, 18)}${TYPE_NAME[t].replace(' / Link','').replace(' / Form','')}</button>`).join('') +
+    `<span class="sep"></span>
+     <button class="tb" data-act="lane" title="Add a swimlane">+ Lane</button>
+     <button class="tb" data-act="undo" title="Undo (Ctrl+Z)">↶ Undo</button>
+     <button class="tb" data-act="redo" title="Redo (Ctrl+Y)">↷ Redo</button>
+     <button class="tb" data-act="del" title="Delete selected (Del)">Delete</button>
+     <button class="tb" data-act="clear" title="Clear canvas">Clear</button>
+     <span class="sep"></span>
+     <button class="tb" data-act="zout" title="Zoom out">−</button>
+     <button class="tb" data-act="zin" title="Zoom in">+</button>
+     <button class="tb" data-act="fit" title="Fit to screen">Fit</button>
+     <button class="tb" data-act="grid" aria-pressed="true" title="Toggle grid">Grid</button>
+     <button class="tb" data-act="num" aria-pressed="false" title="Toggle step numbers">1.1</button>`;
+  $$('.pal').forEach(b => {
+    b.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b.dataset.type); e.dataTransfer.effectAllowed = 'copy'; });
+    b.addEventListener('click', () => {
+      const z = state.zoom, k = state.flow.nodes.length % 6;
+      const x = (wrapEl.scrollLeft + wrapEl.clientWidth/2) / z + k*14 - 30;
+      const y = (wrapEl.scrollTop + wrapEl.clientHeight/2) / z + k*10;
+      addNode(b.dataset.type, x, y);
+    });
+  });
+  $('#toolbar').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const a = b.dataset.act;
+    if (a === 'lane') addLane(); else if (a === 'undo') undo(); else if (a === 'redo') redo();
+    else if (a === 'del') deleteSelection(); else if (a === 'clear') clearCanvas();
+    else if (a === 'zin') setZoom(state.zoom + 0.1); else if (a === 'zout') setZoom(state.zoom - 0.1);
+    else if (a === 'fit') fitView();
+    else if (a === 'grid'){ state.grid = !state.grid; b.setAttribute('aria-pressed', state.grid); render(); log('ui', { act:'grid', on:state.grid }); }
+    else if (a === 'num'){ state.numbering = !state.numbering; b.setAttribute('aria-pressed', state.numbering); render(); log('ui', { act:'numbering', on:state.numbering }); }
+  });
+}
+function updateToolbar(){
+  const u = $('[data-act=undo]'), r = $('[data-act=redo]'), d = $('[data-act=del]');
+  if (u) u.disabled = state.locked || !state.undo.length;
+  if (r) r.disabled = state.locked || !state.redo.length;
+  if (d) d.disabled = state.locked || !state.sel;
+  $$('#toolbar button').forEach(b => { if (!['undo','redo','del','zin','zout','fit'].includes(b.dataset.act)) b.disabled = state.locked; });
+}
+function setZoom(z){ state.zoom = clamp(Math.round(z*10)/10, 0.4, 1.8); render(); }
+function fitView(){
+  const f = state.flow;
+  const maxX = f.nodes.length ? Math.max(...f.nodes.map(n => n.x + dim(n).w/2)) + 60 : 1000;
+  const w = Math.max(700, maxX);
+  const zx = (wrapEl.clientWidth - 16) / w, zy = (wrapEl.clientHeight - 16) / canvasH(f);
+  setZoom(Math.min(zx, Math.max(zy, 0.5), 1.4)); wrapEl.scrollLeft = 0; wrapEl.scrollTop = 0;
+}
+function renderPropbar(){
+  const pb = $('#propbar'); const sel = state.sel;
+  updateToolbar();
+  if (state.locked){ pb.innerHTML = '<span class="k">The map is locked.</span>'; return; }
+  if (!sel){ pb.innerHTML = '<span class="k">Tip: drag a shape into a lane (or click it to add) · drag from a shape’s blue dot to connect · double-click to edit text · click a lane label to rename it.</span>'; return; }
+  if (sel.kind === 'node'){
+    const n = getNode(sel.id); if (!n){ state.sel = null; return renderPropbar(); }
+    let h = `<span class="k">Selected:</span> <b>${TYPE_NAME[n.type]}</b> <button class="btn sm" id="pbEdit">Edit text</button>`;
+    if (n.type === 'process') h += ` <label class="k" for="pbTag">System tag</label> <input id="pbTag" list="tagList" value="${esc(n.systemTag || '')}" placeholder="none" style="width:120px"><datalist id="tagList"><option>Manual</option><option>System</option><option>Email</option><option>Word</option><option>Excel</option></datalist>`;
+    h += ` <span class="k">Lane: ${esc(laneName(n.laneId))}</span> <button class="btn sm" id="pbDel">Delete</button>`;
+    pb.innerHTML = h;
+    $('#pbEdit').onclick = () => editNodeLabel(n.id);
+    $('#pbDel').onclick = deleteSelection;
+    const tag = $('#pbTag');
+    if (tag) tag.onchange = () => { const v = tag.value.trim() || null; if (v === (n.systemTag || null)) return; pushHistory(); n.systemTag = v; render(); edited('retagNode', { id:n.id, tag:v }); };
+  } else if (sel.kind === 'edge'){
+    const e = getEdge(sel.id); if (!e){ state.sel = null; return renderPropbar(); }
+    pb.innerHTML = `<span class="k">Arrow label</span> <input id="pbEdgeLabel" value="${esc(e.label || '')}" placeholder="e.g. Yes" style="width:110px">
+      <select id="pbEdgeStyle"><option value="mandatory">Solid — mandatory</option><option value="optional">Dashed — optional</option></select>
+      <button class="btn sm" id="pbDel">Delete arrow</button>`;
+    $('#pbEdgeStyle').value = e.style || 'mandatory';
+    $('#pbEdgeLabel').onchange = ev => { const v = ev.target.value.trim(); if (v === (e.label||'')) return; pushHistory(); e.label = v; render(); edited('relabelEdge', { id:e.id, label:v }); };
+    $('#pbEdgeStyle').onchange = ev => { pushHistory(); e.style = ev.target.value; render(); edited('styleEdge', { id:e.id, style:e.style }); };
+    $('#pbDel').onclick = deleteSelection;
+  } else if (sel.kind === 'lane'){
+    const l = getLane(sel.id); if (!l){ state.sel = null; return renderPropbar(); }
+    pb.innerHTML = `<label class="k" for="pbLaneName">Lane name</label> <input id="pbLaneName" value="${esc(l.name)}" style="width:190px">
+      <button class="btn sm" id="pbUp" title="Move lane up">↑</button><button class="btn sm" id="pbDown" title="Move lane down">↓</button>
+      <button class="btn sm" id="pbDel">Delete lane</button>`;
+    const inp = $('#pbLaneName');
+    const commit = () => { const v = inp.value.trim(); if (!v || v === l.name) return; pushHistory(); l.name = v; render(); edited('renameLane', { id:l.id, label:v }); };
+    inp.onchange = commit; inp.onkeydown = ev => { if (ev.key === 'Enter'){ ev.preventDefault(); commit(); inp.blur(); } };
+    $('#pbUp').onclick = () => moveLane(l.id, -1); $('#pbDown').onclick = () => moveLane(l.id, 1);
+    $('#pbDel').onclick = () => deleteLane(l.id);
+  }
+}
+
+/* =====================================================================
+   COACH ENGINE — rule-based analysis of the flow
+   ===================================================================== */
+function analyze(flow){
+  const C = COACH_CONFIG, P = C.patterns;
+  const L = s => String(s || '').toLowerCase().replace(/\s+/g,' ').trim();
+  const nodes = flow.nodes, edges = flow.edges;
+  const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+  const outE = {}, inE = {};
+  nodes.forEach(n => { outE[n.id] = []; inE[n.id] = []; });
+  edges.forEach(e => { if (outE[e.source] && byId[e.target]) outE[e.source].push(e); if (inE[e.target] && byId[e.source]) inE[e.target].push(e); });
+  const starts = nodes.filter(n => n.type === 'start'), ends = nodes.filter(n => n.type === 'end');
+  const procs = nodes.filter(n => n.type === 'process');
+  const decisions = nodes.filter(n => n.type === 'decision');
+  const docs = nodes.filter(n => n.type === 'document');
+  const subs = nodes.filter(n => n.type === 'subprocess');
+  const conns = nodes.filter(n => n.type === 'connector');
+  const content = nodes.filter(n => !['start','end','connector'].includes(n.type));
+  const issues = [];
+  const add = (id, vars = {}, nodeIds = [], suffix = '') => {
+    const t = C.issues[id]; if (!t) return;
+    issues.push({ key: id + (suffix ? ':' + suffix : ''), id, c: t.c, w: t.w, cps: t.cps, vars, nodeIds });
+  };
+  const isDefault = n => P.defaultLabels.includes(L(n.label));
+
+  // connector pairing
+  const connGroups = {};
+  conns.forEach(n => { const k = L(n.label).toUpperCase(); (connGroups[k] = connGroups[k] || []).push(n); });
+  const partnerOf = n => (connGroups[L(n.label).toUpperCase()] || []).filter(x => x.id !== n.id);
+
+  const empty = nodes.length < 2;
+  if (empty) add('B_EMPTY', {}, []);
+
+  // ---------- C1 Boundaries ----------
+  if (!empty){
+    if (!starts.length) add('B_NO_START');
+    else if (starts.length > 1) add('B_MULTI_START', { n: starts.length }, starts.map(n => n.id));
+    else if (!P.trigger.test(L(starts[0].label)) || P.vagueTerminal.test(L(starts[0].label))) add('B_START_VAGUE', { label: starts[0].label || '(blank)' }, [starts[0].id]);
+    if (!ends.length) add('B_NO_END');
+    else {
+      const vague = ends.filter(n => P.vagueTerminal.test(L(n.label)) || !P.outcome.test(L(n.label)));
+      if (vague.length === ends.length) add('B_END_VAGUE', { label: vague[0].label || '(blank)' }, [vague[0].id]);
+    }
+    nodes.filter(n => ['process','decision','document'].includes(n.type)).forEach(n => {
+      const t = L(n.label);
+      if (P.tea.test(t)) add('B_TEA', { label:n.label }, [n.id], n.id);
+      else if (P.outOfScope.test(t)) add('B_OUT_OF_SCOPE', { label:n.label }, [n.id], n.id);
+      else if (P.beyondEnd.test(t) && !/enjoy/.test(t)) add('B_BEYOND_END', { label:n.label }, [n.id], n.id);
+    });
+  }
+
+  // ---------- C2 Completeness (stage coverage) ----------
+  const stageHits = {};
+  C.stages.forEach(st => { stageHits[st.id] = content.some(n => st.re.test(L(n.label))); });
+  const covered = C.stages.filter(st => stageHits[st.id]).length;
+  if (!empty) C.stages.forEach(st => { if (!stageHits[st.id]) add('D_STAGE_' + st.id); });
+  const allText = content.map(n => L(n.label)).join(' | ');
+  const hasSlot = /slot|second floor|2nd floor/.test(allText), hasCounter = /counter|catcher|\bcard\b|first floor|1st floor/.test(allText);
+  const floorDecision = decisions.some(n => /floor|which|where|blend|brew/.test(L(n.label)));
+  if (stageHits.position && (hasSlot !== hasCounter) && !floorDecision) add('D_FLOOR');
+
+  // ---------- C3 Detail ----------
+  const activityCount = procs.length + docs.length;
+  if (!empty){
+    const combined = procs.filter(n => L(n.label).length > 40 && P.combined.test(' ' + L(n.label) + ' '));
+    if (combined.length) add('D_COMBINED', { label: trunc(combined[0].label, 60) }, combined.map(n => n.id));
+    if (activityCount < 5) add('D_TOO_FEW', { n: activityCount });
+    else if (activityCount > 28) add('D_TOO_MANY', { n: activityCount });
+  }
+
+  // ---------- C4 Labels ----------
+  const defaults = nodes.filter(n => ['process','decision','subprocess','document'].includes(n.type) && isDefault(n));
+  if (defaults.length) add('L_EMPTY', { n: defaults.length, label: defaults[0].label || '(blank)' }, defaults.map(n => n.id));
+  const verbSet = new Set(C.verbs);
+  const startsWithVerb = n => {
+    const w = L(n.label).replace(/^[\d.\s)-]+/, '').split(/[\s/,-]+/).filter(Boolean);
+    const base = x => (x || '').replace(/(ies)$/,'y').replace(/(es|s)$/,'');
+    return [w[0], w[1]].some(x => x && (verbSet.has(x) || verbSet.has(base(x)) || verbSet.has(x.replace(/s$/,''))));
+  };
+  const labelled = procs.filter(n => !isDefault(n));
+  const nonVerb = labelled.filter(n => !startsWithVerb(n));
+  if (labelled.length >= 2 && nonVerb.length >= Math.max(2, Math.ceil(labelled.length * 0.34))) add('L_NOT_VERB', { label: trunc(nonVerb[0].label, 50) }, nonVerb.map(n => n.id));
+  const personNodes = nodes.filter(n => P.person.test(L(n.label)));
+  if (personNodes.length) add('L_PERSON', { label: trunc(personNodes[0].label, 50) }, personNodes.map(n => n.id));
+  const longs = nodes.filter(n => (n.label || '').length > 70);
+  if (longs.length) add('L_LONG', { label: trunc(longs[0].label, 40) }, longs.map(n => n.id));
+
+  // ---------- C5 Logic ----------
+  let deadCount = 0, unlabeledCount = 0, endReachable = false;
+  if (!empty){
+    if (!edges.length) add('G_NO_EDGES');
+    if (!decisions.length) add('G_NO_DECISION');
+    else if (decisions.length === 1) add('G_FEW_DECISIONS', {}, decisions.map(n => n.id));
+    decisions.forEach(d => {
+      const outs = outE[d.id];
+      const lab = trunc(d.label || 'decision', 40);
+      if (outs.length < 2) add('G_BRANCHES', { label: lab, k: outs.length }, [d.id], d.id);
+      const un = outs.filter(e => !String(e.label || '').trim());
+      if (un.length){ unlabeledCount += un.length; add('G_UNLABELED', { label: lab }, [d.id], d.id); }
+      if (!isDefault(d) && !/\?\s*$/.test(d.label || '')) add('G_NOT_QUESTION', { label: lab }, [d.id], d.id);
+    });
+    if (edges.length){
+      nodes.forEach(n => {
+        if (n.type === 'end') return;
+        if (n.type === 'connector' && partnerOf(n).length) return;
+        if (!outE[n.id].length){ deadCount++; add('G_DEAD_END', { label: trunc(n.label || TYPE_NAME[n.type], 40) }, [n.id], n.id); }
+      });
+      nodes.forEach(n => {
+        if (n.type === 'start') return;
+        if (n.type === 'connector' && partnerOf(n).length) return;
+        if (!inE[n.id].length) add('G_ORPHAN', { label: trunc(n.label || TYPE_NAME[n.type], 40) }, [n.id], n.id);
+      });
+    }
+    // reachability
+    if (starts.length && ends.length){
+      const seen = new Set(), q = starts.map(n => n.id);
+      while (q.length){
+        const id = q.shift(); if (seen.has(id)) continue; seen.add(id);
+        (outE[id] || []).forEach(e => q.push(e.target));
+        const n = byId[id]; if (n && n.type === 'connector') partnerOf(n).forEach(p => q.push(p.id));
+      }
+      endReachable = ends.some(n => seen.has(n.id));
+      if (edges.length && !endReachable) add('G_UNREACHABLE');
+    }
+  }
+
+  // ---------- C6 Ownership ----------
+  const usedLanes = new Set(nodes.map(n => n.laneId));
+  const managerLaneExists = flow.lanes.some(l => P.managerLane.test(L(l.name)));
+  if (!empty){
+    flow.lanes.forEach(l => {
+      const nm = (l.name || '').trim();
+      if (P.defaultLane.test(nm)) add('O_DEFAULT', { label: nm }, [], l.id);
+      else if (P.person.test(L(nm)) || (/^[A-Z][a-z]+ [A-Z][a-z]+$/.test(nm) && !P.roleWords.test(nm))) add('O_PERSON', { label: nm }, [], l.id);
+      if (!usedLanes.has(l.id) && flow.lanes.length > 1) add('O_EMPTY', { label: nm }, [], l.id);
+    });
+    if (nodes.length >= 3 && usedLanes.size < 2) add('O_SINGLE');
+    nodes.forEach(n => {
+      const ln = L(laneName2(flow, n.laneId)), t = L(n.label);
+      if (n.type !== 'process' || /\?\s*$/.test(t) || /^(check|verify|confirm|ensure|is |are )/.test(t)) return; // checks are fine in any lane
+      if (managerLaneExists && P.managerTask.test(t) && P.brewerLane.test(ln) && !P.managerLane.test(ln)) add('O_MISPLACED', { label: trunc(n.label, 40), lane: laneName2(flow, n.laneId) }, [n.id], n.id);
+      else if (P.brewTask.test(t) && P.vendorLane.test(ln)) add('O_MISPLACED', { label: trunc(n.label, 40), lane: laneName2(flow, n.laneId) }, [n.id], n.id);
+    });
+  }
+
+  // ---------- C7 Layout ----------
+  let backCount = 0, crossCount = 0;
+  if (!empty){
+    edges.forEach(e => {
+      const s = byId[e.source], t = byId[e.target]; if (!s || !t) return;
+      if (s.type === 'decision' || t.type === 'connector') return;
+      if (t.x < s.x - 40) backCount++;
+    });
+    if (backCount) add('F_BACKWARD', { n: backCount });
+    crossCount = crossings(flow);
+    if (crossCount) add('F_CROSS', { n: crossCount });
+    if (starts.length === 1){
+      const st = starts[0];
+      if (nodes.some(n => n.id !== st.id && n.x < st.x - 60)) add('F_START_POS', {}, [st.id]);
+    }
+    const ov = [];
+    for (let i=0;i<nodes.length;i++) for (let j=i+1;j<nodes.length;j++){
+      const a = nodes[i], b = nodes[j], da = dim(a), db = dim(b);
+      if (Math.abs(a.x - b.x) < (da.w + db.w)/2 - 6 && Math.abs(nodeY(a,flow) - nodeY(b,flow)) < (da.h + db.h)/2 - 6) ov.push(a, b);
+    }
+    if (ov.length) add('F_OVERLAP', { label: trunc(ov[0].label, 30) }, [...new Set(ov.map(n => n.id))]);
+  }
+
+  // ---------- C8 Symbols ----------
+  let misuse = 0;
+  if (!empty){
+    procs.forEach(n => {
+      if (P.vagueTerminal.test(L(n.label))){ misuse++; add('Y_TERMINAL_AS_PROCESS', { label:n.label }, [n.id], n.id); }
+      else if (/\?\s*$/.test(n.label || '')){ misuse++; add('Y_QUESTION_PROCESS', { label: trunc(n.label, 40) }, [n.id], n.id); }
+    });
+    nodes.filter(n => ['process','subprocess','document','start'].includes(n.type)).forEach(n => {
+      const outs = outE[n.id].filter(e => (e.style || 'mandatory') === 'mandatory');
+      if (new Set(outs.map(e => e.target)).size >= 2){ misuse++; add('Y_PROCESS_BRANCH', { label: trunc(n.label, 40) }, [n.id], n.id); }
+    });
+    conns.forEach(n => { if (!partnerOf(n).length){ misuse++; add('Y_CONNECTOR_UNPAIRED', { label: n.label || '?' }, [n.id], n.id); } });
+  }
+
+  // ---------- Scores ----------
+  const sumW = c => {
+    const counts = {};
+    issues.filter(i => i.c === c).forEach(i => counts[i.id] = (counts[i.id] || 0) + 1);
+    return Object.entries(counts).reduce((s, [id, k]) => s + C.issues[id].w + (k > 1 ? 1 : 0), 0);
+  };
+  const sc = {};
+  if (empty){ ['C1','C2','C3','C4','C5','C6','C7','C8'].forEach(c => sc[c] = 0); }
+  else {
+    sc.C1 = (!starts.length && !ends.length) ? 0 : clamp(3 - sumW('C1'), 0, 3);
+    sc.C2 = covered >= 6 ? 3 : covered >= 4 ? 2 : covered >= 2 ? 1 : 0;
+    if (sc.C2 === 3 && issues.some(i => i.id === 'D_FLOOR')) sc.C2 = 2;
+    sc.C3 = activityCount < 2 ? 0 : clamp(3 - sumW('C3'), 0, 3);
+    sc.C4 = content.length === 0 ? 0 : clamp(3 - sumW('C4'), 0, 3);
+    sc.C5 = (!edges.length || !decisions.length) ? 0 : clamp(3 - sumW('C5'), 0, 3);
+    sc.C6 = clamp(3 - sumW('C6'), 0, 3);
+    sc.C7 = !edges.length ? Math.min(1, clamp(3 - sumW('C7'),0,3)) : clamp(3 - sumW('C7'), 0, 3);
+    sc.C8 = clamp(3 - sumW('C8'), 0, 3);
+    // The rubric reserves 0 for specific conditions (e.g., "No decisions", "Neither present");
+    // otherwise accumulated issues bottom out at 1 ("Emerging").
+    if (starts.length || ends.length) sc.C1 = Math.max(1, sc.C1);
+    if (activityCount >= 2) sc.C3 = Math.max(1, sc.C3);
+    if (content.length) sc.C4 = Math.max(1, sc.C4);
+    if (edges.length && decisions.length) sc.C5 = Math.max(1, sc.C5);
+    sc.C6 = Math.max(1, sc.C6);
+    if (edges.length) sc.C7 = Math.max(1, sc.C7);
+    sc.C8 = Math.max(1, sc.C8);
+  }
+  const total = Object.values(sc).reduce((a,b) => a + b, 0);
+
+  // ---------- Strengths ----------
+  const strengths = [];
+  const S = (c, text) => strengths.push({ c, text });
+  if (!empty){
+    const goodStart = starts.length === 1 && P.trigger.test(L(starts[0].label)) && !P.vagueTerminal.test(L(starts[0].label));
+    const goodEnd = ends.length && ends.some(n => P.outcome.test(L(n.label)) && !P.vagueTerminal.test(L(n.label)));
+    if (goodStart && goodEnd) S('C1', `Your boundaries are clear: the map starts with “${trunc(starts[0].label,40)}” and ends with an outcome.`);
+    else if (goodStart) S('C1', `Your Start names a real triggering event (“${trunc(starts[0].label,40)}”) — exactly what boundaries need.`);
+    else if (goodEnd) S('C1', 'Your End describes an outcome, so a reader knows what “finished” looks like.');
+    if (subs.some(n => P.outOfScope.test(L(n.label)))) S('C1', 'Showing periodic work as a linked sub-process keeps this map focused on one process.');
+    if (covered >= 5) S('C2', 'You’ve captured nearly all of the SOP’s core activities.');
+    else if (covered >= 3) S('C2', `You’ve already covered ${covered} of the SOP’s main stages.`);
+    if (activityCount >= 5 && !issues.some(i => i.c === 'C3')) S('C3', 'Your steps sit at a fairly consistent level of detail.');
+    if (labelled.length >= 4 && nonVerb.length <= 1) S('C4', 'Your activity labels start with actions, which makes them easy to follow.');
+    if (decisions.length && decisions.every(d => outE[d.id].length >= 2 && outE[d.id].every(e => (e.label || '').trim()))) S('C5', `Your decision point${decisions.length > 1 ? 's have' : ' has'} a labeled path for each outcome.`);
+    if (edges.length >= 3 && deadCount === 0) S('C5', 'Every step leads somewhere — no dead ends.');
+    const roleLanes = flow.lanes.filter(l => usedLanes.has(l.id) && !P.defaultLane.test(l.name) && !P.person.test(L(l.name)));
+    if (roleLanes.length >= 2) S('C6', 'Your swimlanes are named after roles, so ownership is clear.');
+    if (edges.length >= 4 && crossCount === 0 && backCount === 0) S('C7', 'Your flow reads cleanly left-to-right without crossing lines.');
+    if (procs.some(n => n.systemTag)) S('C8', 'Tagging steps with how they’re done (e.g., Manual) adds useful context.');
+    if (decisions.length && misuse === 0 && nodes.length >= 4) S('C8', 'You’re using the standard symbols correctly.');
+    if (!strengths.length) S('C2', 'You’ve got steps on the canvas — getting the process out of your head is the first win.');
+  } else S('C1', 'You’ve read the brief — now’s a great time to define your boundaries.');
+
+  // ---------- Evidence ----------
+  const missing = C.stages.filter(st => !stageHits[st.id]).map(st => st.name);
+  const verbPct = labelled.length ? Math.round(100 * (labelled.length - nonVerb.length) / labelled.length) : 0;
+  const ev = {
+    C1: `Start: ${starts.length ? '“' + trunc(starts.map(n => n.label).join('”, “'), 60) + '”' : 'none'} · End: ${ends.length ? '“' + trunc(ends.map(n => n.label).join('”, “'), 60) + '”' : 'none'}`,
+    C2: `Covers ${covered} of 6 core stages` + (missing.length ? ` — not yet shown: ${missing.join('; ')}` : ''),
+    C3: `${activityCount} activity step(s)` + (issues.some(i => i.id === 'D_COMBINED') ? '; at least one bundled step' : ''),
+    C4: labelled.length ? `${verbPct}% of activity labels start with an action; ${defaults.length} placeholder label(s)` : 'No activity labels yet',
+    C5: `${decisions.length} decision(s); ${unlabeledCount} unlabeled branch(es); ${deadCount} dead end(s)` + (starts.length && ends.length && edges.length ? (endReachable ? '; Start connects to End' : '; no Start→End path') : ''),
+    C6: `Lanes: ${flow.lanes.map(l => '“' + trunc(l.name, 24) + '”' + (usedLanes.has(l.id) ? '' : ' (empty)')).join(', ')}`,
+    C7: `${crossCount} crossing(s); ${backCount} backward arrow(s)`,
+    C8: `${misuse} symbol misuse(s); ${decisions.length} diamond(s), ${starts.length + ends.length} start/end pill(s)`
+  };
+
+  // priority sort
+  const pr = c => C.priority.indexOf(c);
+  issues.forEach((i, k) => i.order = k);
+  issues.sort((a,b) => (pr(a.c) - pr(b.c)) || (b.w - a.w) || (a.order - b.order));
+
+  return { issues, strengths, scores: sc, total, evidence: ev, stages: stageHits, covered,
+    stats: { nodes: nodes.length, edges: edges.length, decisions: decisions.length, activities: activityCount, crossings: crossCount, backward: backCount, deadEnds: deadCount },
+    allText };
+}
+function laneName2(flow, id){ const l = flow.lanes.find(x => x.id === id); return l ? l.name : ''; }
+
+/* =====================================================================
+   COACH UI
+   ===================================================================== */
+const coachEl = $('#coach');
+function setCoachOpen(open){
+  state.coachOpen = open; coachEl.classList.toggle('open', open);
+  $('#coachOpen').setAttribute('aria-expanded', open);
+  log('coach_panel', { open });
+  if (open) setTimeout(() => { const m = $('#cmsgs'); m.scrollTop = m.scrollHeight; }, 30);
+}
+$('#coachOpen').onclick = () => setCoachOpen(true);
+$('#coachClose').onclick = () => setCoachOpen(false);
+function buildCoachUI(){
+  $('#cpList').innerHTML = COACH_CONFIG.checkpoints.map(cp => `<button data-cp="${cp.id}"><span class="n">${cp.id}</span>${esc(cp.label)}</button>`).join('');
+  $('#cpList').onclick = e => { const b = e.target.closest('[data-cp]'); if (b) requestCheckpoint(+b.dataset.cp); };
+  $('#btnHint').onclick = () => requestHint(+$('#hintLevel').value);
+  $('#cform').onsubmit = e => { e.preventDefault(); const v = $('#cinput').value.trim(); if (!v) return; $('#cinput').value = ''; requestText(v); };
+  $('#btnDoneRevising').onclick = openCp5Post;
+  $('#cmsgs').addEventListener('click', onCoachMsgClick);
+  $('#cmsgs').addEventListener('input', e => {
+    const box = e.target.closest('[data-mid]'); if (!box) return;
+    const msg = state.coachMsgs.find(m => m.id === box.dataset.mid); if (!msg) return;
+    if (e.target.matches('[data-cp5chg]')) msg.draft = e.target.value;
+    if (e.target.matches('[data-ddraft]')) msg.dDraft = e.target.value;
+  });
+  if (state.coachMsgs.length === 0) pushCoach({ kind:'intro', html:`Hi! I’m ${esc(COACH_CONFIG.name)}, a built-in coach. I only give feedback when you ask. Use a <b>checkpoint</b> as you work through the method, ask for a <b>hint</b> if you’re stuck, or type a question. I won’t draw the map for you — but I’ll help you see what to improve.` });
+}
+function coachBusy(b){
+  $('#typing').classList.toggle('hidden', !b);
+  $$('#cpList button, #btnHint, #cform button, #cinput').forEach(x => x.disabled = b || state.locked);
+}
+function limitReached(){
+  const lim = COACH_CONFIG.requestLimit;
+  if (lim && state.requests >= lim){ pushCoach({ kind:'info', html:'You’ve used all available feedback requests for this session.' }); return true; }
+  return false;
+}
+function countRequest(kind, detail){
+  state.requests++; $('#reqCount').textContent = state.requests;
+  const snap = snapshot('request:' + kind);
+  log('coach_request', Object.assign({ kind, n: state.requests, snapHash: snap.hash, scores: snap.scores }, detail || {}));
+}
+function pushLearner(text){ state.coachMsgs.push({ id: uid('M'), role:'l', t: now(), text }); renderCoach(); }
+function pushCoach(m){ m.id = m.id || uid('M'); m.role = 'c'; m.t = now(); state.coachMsgs.push(m); renderCoach(); return m; }
+function timeLeft(){ return state.phase === 'build' && state.phaseEnd ? state.phaseEnd - Date.now() : Infinity; }
+function think(fn){ coachBusy(true); setTimeout(() => { coachBusy(false); fn(); }, COACH_CONFIG.thinkingMs); }
+
+function obsHtml(issue){
+  const t = COACH_CONFIG.issues[issue.id], v = issue.vars;
+  const sop = t.sop && t.sop.length ? `<div class="refs">Check SOP ${t.sop.join(', ')}</div>` : '';
+  return `<div class="ob"><span class="crit">${issue.c} · ${esc(COACH_CONFIG.critNames[issue.c])}</span>
+    <p><b>What:</b> ${fill(t.what, v)}</p><p><b>Why it matters:</b> ${fill(t.why, v)}</p><p><b>Next step:</b> ${fill(t.next, v)}</p>${sop}</div>`;
+}
+function pickStrength(an, crits){ return (an.strengths.find(s => crits.includes(s.c)) || an.strengths[0] || { text:'' }).text; }
+
+function requestCheckpoint(cpId){
+  if (state.locked || limitReached()) return;
+  const cp = COACH_CONFIG.checkpoints.find(c => c.id === cpId);
+  pushLearner(cp.label);
+  if (cpId === 5){ askCp5Pre(); return; }
+  runCheckpoint(cp);
+}
+function runCheckpoint(cp, extra){
+  const h = hashFlow();
+  const last = state.lastCp[cp.id];
+  if (last && last.hash === h && last.keys.length){
+    countRequest('cp' + cp.id, { repeatNoChange: true });
+    think(() => {
+      const iss = last.issues[0];
+      const t = COACH_CONFIG.issues[iss.id];
+      const m = pushCoach({ kind:'repeat', cp: cp.id, issues: [iss.key], html:`Your map hasn’t changed since I last ran this check, so my earlier point still stands: <b>${fill(t.what, iss.vars)}</b><p class="rq">Try revising first, then check again — spotting the fix yourself is where the learning happens.</p>` });
+      log('coach_response', { kind:'cp' + cp.id, msg: m.id, repeatNoChange: true, issues: [iss.key], criteria: [iss.c] });
+    });
+    return;
+  }
+  countRequest('cp' + cp.id, extra);
+  think(() => {
+    const an = analyze(state.flow);
+    const max = timeLeft() < COACH_CONFIG.lowTimeMs ? 1 : cp.max;
+    const picked = an.issues.filter(i => i.cps.includes(cp.id) && !state.dismissed.has(i.key)).slice(0, max);
+    let html = `<div class="str">✓ ${esc(pickStrength(an, cp.crit))}</div>`;
+    if (picked.length) html += picked.map(obsHtml).join('');
+    else html += `<p>I don’t see a high-priority issue for this check. Nice work.</p><p>Try another checkpoint, or walk your map from Start to End as if you were a brand-new employee.</p>`;
+    html += `<p class="rq">${esc(cp.question)}</p>`;
+    const m = pushCoach({ kind:'feedback', cp: cp.id, issues: picked.map(i => i.key), crit: picked.map(i => i.c), vars: picked[0] ? picked[0].vars : {}, nodeIds: [...new Set(picked.flatMap(i => i.nodeIds))], html, respond: picked.length > 0 });
+    state.lastCp[cp.id] = { hash: hashFlow(), keys: picked.map(i => i.key), issues: picked };
+    log('coach_response', { kind:'cp' + cp.id, msg: m.id, issues: m.issues, criteria: m.crit, scores: an.scores, total: an.total });
+    scheduleSnapshot('after:' + m.id);
+    if (cp.id === 5 && state.cp5Open){ state.cp5Open.feedbackMsg = m.id; state.cp5Open.issues = m.issues; $('#cp5bar').classList.remove('hidden'); }
+  });
+}
+function askCp5Pre(){
+  if (state.cp5Open && !state.cp5Open.post) log('cp5_abandoned', { cycle: state.cp5Open.n });
+  const m = pushCoach({ kind:'cp5pre', html:`Before I review your draft: <b>how confident are you in this map right now?</b><div class="scale" data-cp5pre="1" style="margin-top:6px">${[1,2,3,4,5].map(n => `<button data-conf="${n}">${n}</button>`).join('')}</div><small>1 = not at all · 5 = very</small>` });
+  m.pending = true;
+}
+function onCp5Pre(msg, v){
+  msg.pending = false; msg.answer = v;
+  msg.html = `Before I review your draft: how confident are you in this map right now? <b>${v} / 5</b>`;
+  const snap = snapshot('cp5-pre');
+  const an = analyze(state.flow);
+  state.cp5Open = { n: state.cp5.length + 1, pre: v, tPre: now(), draftFlow: clone(state.flow), draftHash: snap.hash, draftScores: an.scores, draftTotal: an.total, post: null };
+  state.cp5.push(state.cp5Open);
+  log('cp5_pre', { cycle: state.cp5Open.n, confidence: v, total: an.total });
+  renderCoach();
+  runCheckpoint(COACH_CONFIG.checkpoints.find(c => c.id === 5), { cp5Cycle: state.cp5Open.n });
+}
+function openCp5Post(){
+  if (!state.cp5Open) return;
+  $('#cp5bar').classList.add('hidden');
+  const m = { kind:'cp5post', html:'', pending:true, cycle: state.cp5Open.n, sel:null, draft:'' };
+  pushCoach(m);
+}
+function onCp5PostSave(msg){
+  if (!msg.sel){ toast('Please pick a confidence rating (1–5).'); return; }
+  const v = msg.sel, change = (msg.draft || '').trim();
+  if (!change){ toast('Please add one sentence about what you changed.'); return; }
+  const cyc = state.cp5.find(c => c.n === msg.cycle) || state.cp5Open;
+  const snap = snapshot('cp5-post');
+  const an = analyze(state.flow);
+  Object.assign(cyc, { post: v, change, tPost: now(), postFlow: clone(state.flow), postHash: snap.hash, postScores: an.scores, postTotal: an.total });
+  if (state.cp5Open === cyc) state.cp5Open = null;
+  msg.pending = false;
+  msg.html = `After revising — confidence: <b>${v} / 5</b><br><i>“${esc(change)}”</i>`;
+  log('cp5_post', { cycle: cyc.n, confidence: v, change, total: an.total });
+  renderCoach();
+  pushCoach({ kind:'info', html:'Thanks — saved. Noticing what you changed (and why) is part of how feedback turns into skill.' });
+}
+function requestHint(level){
+  if (state.locked || limitReached()) return;
+  const names = { 1:'Nudge', 2:'Point', 3:'Explain' };
+  pushLearner(`Give me a hint (Level ${level} · ${names[level]})`);
+  countRequest('hint', { level });
+  think(() => {
+    const an = analyze(state.flow);
+    const iss = an.issues.find(i => !state.dismissed.has(i.key));
+    let html;
+    if (!iss) html = `<p>I don’t see a high-priority gap right now. Try walking the map from Start to End as a brand-new employee — would you know exactly what to do at every step?</p>`;
+    else {
+      const t = COACH_CONFIG.issues[iss.id];
+      if (level === 1) html = `<p><b>Nudge:</b> ${fill(t.nudge, iss.vars)}</p>`;
+      else if (level === 2) html = `<p><b>Where to look:</b> ${fill(t.point, iss.vars)}</p>`;
+      else html = `<p><b>${esc(COACH_CONFIG.critNames[iss.c])} — the idea:</b> ${esc(COACH_CONFIG.explain[iss.c])}</p><p>Now look at your own map with that in mind.</p>`;
+    }
+    const m = pushCoach({ kind:'hint', level, issues: iss ? [iss.key] : [], crit: iss ? [iss.c] : [], vars: iss ? iss.vars : {}, nodeIds: iss && level >= 2 ? iss.nodeIds : [], html, respond: !!iss });
+    log('coach_response', { kind:'hint', level, msg: m.id, issues: m.issues, criteria: m.crit, scores: an.scores, total: an.total });
+    scheduleSnapshot('after:' + m.id);
+  });
+}
+function requestText(text){
+  if (state.locked || limitReached()) return;
+  pushLearner(text);
+  const f = COACH_CONFIG.faq.find(x => x.re.test(text));
+  countRequest('text', { intent: f ? f.id : 'fallback', text });
+  think(() => {
+    let html, issues = [], crit = [];
+    if (!f) html = esc(COACH_CONFIG.fallback);
+    else if (f.a === 'TIME') html = `You have about <b>${fmt(timeLeft())}</b> left to build. Leave a little time to act on any feedback.`;
+    else if (f.a === 'NEXT'){
+      const an = analyze(state.flow);
+      const iss = an.issues.find(i => !state.dismissed.has(i.key));
+      const nextStep = GAME_CONFIG.method.find(s => state.stepper[s.id] !== 'done');
+      html = (nextStep ? `<p>Using the method, the next step to work on is <b>${esc(nextStep.name)}</b> — ${esc(nextStep.tag)}.</p>` : '');
+      if (iss){ html += `<p><b>Nudge:</b> ${fill(COACH_CONFIG.issues[iss.id].nudge, iss.vars)}</p>`; issues = [iss.key]; crit = [iss.c]; }
+      if (!html) html = 'You’re in good shape. Walk your map from Start to End as a brand-new employee, or run “Review My Draft”.';
+    }
+    else html = esc(f.a);
+    const m = pushCoach({ kind:'text', intent: f ? f.id : 'fallback', issues, crit, html });
+    log('coach_response', { kind:'text', intent: f ? f.id : 'fallback', msg: m.id, issues });
+  });
+}
+function onCoachMsgClick(e){
+  const box = e.target.closest('[data-mid]'); if (!box) return;
+  const msg = state.coachMsgs.find(m => m.id === box.dataset.mid); if (!msg) return;
+  const conf = e.target.closest('[data-conf]');
+  if (conf && msg.kind === 'cp5pre' && msg.pending){ onCp5Pre(msg, +conf.dataset.conf); return; }
+  if (conf && msg.kind === 'cp5post' && msg.pending){
+    msg.sel = +conf.dataset.conf;
+    $$('[data-conf]', box).forEach(b => b.setAttribute('aria-pressed', b === conf ? 'true' : 'false')); return;
+  }
+  if (e.target.closest('[data-cp5save]')){ onCp5PostSave(msg); return; }
+  const show = e.target.closest('[data-show]');
+  if (show){
+    log('show_me', { msg: msg.id, nodes: msg.nodeIds });
+    state.flash = new Set(msg.nodeIds || []); render();
+    setTimeout(() => { state.flash = new Set(); render(); }, 2600);
+    return;
+  }
+  const r = e.target.closest('[data-resp]');
+  if (r && !msg.response){
+    const resp = r.dataset.resp;
+    if (resp === 'disagree'){ msg.disagreeOpen = true; renderCoach(); const ta = $(`[data-mid="${msg.id}"] textarea`); if (ta) ta.focus(); return; }
+    msg.response = resp; log('feedback_response', { msg: msg.id, response: resp, issues: msg.issues });
+    renderCoach();
+    if (resp === 'unsure'){
+      think(() => {
+        const keys = msg.issues || []; const c = (msg.crit && msg.crit[0]) || 'C1';
+        const first = keys[0] ? keys[0].split(':')[0] : null; const t = first ? COACH_CONFIG.issues[first] : null;
+        const m = pushCoach({ kind:'clarify', issues: keys, crit: msg.crit, html:`<p>Let me put it another way. ${esc(COACH_CONFIG.explain[c])}</p>${t ? `<p><b>So for your map:</b> ${fill(t.nudge, (msg.vars || {}))}</p>` : ''}` });
+        log('coach_response', { kind:'clarify', msg: m.id, re: msg.id });
+      });
+    }
+    return;
+  }
+  if (e.target.closest('[data-dsend]')){
+    const ta = $(`[data-mid="${msg.id}"] textarea`); const reason = ta ? ta.value.trim() : '';
+    if (!reason){ toast('Please add a short reason.'); return; }
+    msg.response = 'disagree'; msg.disagreeReason = reason; msg.disagreeOpen = false;
+    (msg.issues || []).forEach(k => state.dismissed.add(k));
+    log('feedback_response', { msg: msg.id, response: 'disagree', reason, issues: msg.issues });
+    renderCoach();
+    think(() => {
+      const keys = msg.issues || []; const first = keys[0] ? keys[0].split(':')[0] : null; const t = first ? COACH_CONFIG.issues[first] : null;
+      const sop = t && t.sop && t.sop.length ? ` (SOP ${t.sop.join(', ')})` : '';
+      pushCoach({ kind:'ack', html:`Thanks for explaining. You know your reasoning best — if your map still matches what the SOP says${sop}, it’s reasonable to keep it. I won’t raise this point again.` });
+    });
+  }
+}
+function renderCoach(){
+  const box = $('#cmsgs'); if (!box) return;
+  box.innerHTML = state.coachMsgs.map(m => {
+    if (m.role === 'l') return `<div class="cm l">${esc(m.text)}</div>`;
+    if (m.kind === 'cp5post' && m.pending){
+      return `<div class="cm c" data-mid="${m.id}">Nice — after revising, <b>how confident are you in your map now?</b>
+        <div class="scale" style="margin-top:6px">${[1,2,3,4,5].map(n => `<button data-conf="${n}" aria-pressed="${m.sel === n}">${n}</button>`).join('')}</div><small>1 = not at all · 5 = very</small>
+        <div class="dis"><label><b>What did you change, and why?</b> (one sentence)</label><textarea data-cp5chg="1">${esc(m.draft || '')}</textarea>
+        <button class="btn sm primary" data-cp5save="1" style="margin-top:4px">Save</button></div></div>`;
+    }
+    let h = `<div class="cm c" data-mid="${m.id}">${m.html}`;
+    if (m.respond){
+      const dis = !!m.response || state.locked;
+      const pressed = v => m.response === v ? 'aria-pressed="true"' : '';
+      h += `<div class="resp">
+        <button data-resp="got" ${pressed('got')} ${dis ? 'disabled' : ''}>Got it</button>
+        <button data-resp="unsure" ${pressed('unsure')} ${dis ? 'disabled' : ''}>Not sure what this means</button>
+        <button data-resp="disagree" ${pressed('disagree')} ${dis ? 'disabled' : ''}>I disagree</button>
+        ${m.nodeIds && m.nodeIds.length && !state.locked ? `<button data-show="1">Show me</button>` : ''}</div>`;
+      if (m.disagreeOpen) h += `<div class="dis"><textarea data-ddraft="1" placeholder="Why do you disagree?">${esc(m.dDraft || '')}</textarea><button class="btn sm" data-dsend="1" style="margin-top:4px">Send</button></div>`;
+      if (m.disagreeReason) h += `<div class="refs">Your reason: “${esc(m.disagreeReason)}”</div>`;
+    }
+    return h + '</div>';
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+/* =====================================================================
+   Snapshots
+   ===================================================================== */
+function snapshot(reason){
+  const an = analyze(state.flow);
+  const s = { t: now(), reason, hash: hashFlow(), scores: an.scores, total: an.total, flow: flowJSON(state.flow) };
+  state.snapshots.push(s); return s;
+}
+function scheduleSnapshot(reason){ setTimeout(() => { if (state.phase === 'build' && !state.locked) snapshot(reason + '+60s'); }, 60000); }
+
+/* =====================================================================
+   Phases & timer
+   ===================================================================== */
+const PHASES = {
+  welcome:     { screen:'scr-welcome', label:'' },
+  instruction: { screen:'scr-instruction', label:'Step 1 of 3 · Learn the method', timed:'instruction' },
+  reading:     { screen:'scr-reading', label:'Step 2 of 3 · Read the SOP', timed:'reading' },
+  build:       { screen:'scr-build', label:'Step 3 of 3 · Build your map', timed:'build' },
+  confidence:  { screen:'scr-confidence', label:'Wrap-up' },
+  reflection:  { screen:'scr-reflection', label:'Reflection' },
+  debrief:     { screen:'scr-debrief', label:'Debrief' },
+  done:        { screen:'scr-done', label:'Complete' }
+};
+function setPhase(p, how){
+  const prev = state.phase;
+  if (prev !== p) log('phase', { from: prev, to: p, how: how || 'auto', remainingMs: state.phaseEnd ? Math.max(0, state.phaseEnd - Date.now()) : null });
+  state.phase = p;
+  $$('.screen').forEach(s => s.classList.toggle('active', s.id === PHASES[p].screen));
+  clearInterval(state.timerId);
+  $('#phaseLabel').textContent = PHASES[p].label;
+  $('#btnSubmit').classList.toggle('hidden', p !== 'build');
+  const t = $('#timer'); t.className = 'timer'; $('#timerNote').textContent = '';
+  if (PHASES[p].timed){ state.phaseEnd = Date.now() + state.minutes[PHASES[p].timed] * 60000; state.timerId = setInterval(tick, 250); tick(); }
+  else { state.phaseEnd = null; t.textContent = ''; }
+  const sc = $('#' + PHASES[p].screen); if (sc) sc.scrollTop = 0;
+}
+function tick(){
+  const left = state.phaseEnd - Date.now();
+  const t = $('#timer'); t.textContent = fmt(left);
+  if (state.phase === 'build'){
+    t.className = 'timer' + (left <= 30000 ? ' red' : left <= 120000 ? ' amber' : '');
+    $('#timerNote').textContent = left <= 30000 ? '30 sec left' : left <= 120000 ? '2 min left' : '';
+    if (!state.warned5 && left <= 300000 && state.minutes.build > 5){ state.warned5 = true; toast('5 minutes left'); log('timer_warning', { left:'5:00' }); }
+  }
+  if (left <= 0){
+    clearInterval(state.timerId);
+    if (state.phase === 'instruction') setPhase('reading', 'timeout');
+    else if (state.phase === 'reading') enterBuild('timeout');
+    else if (state.phase === 'build') finishBuild('time-up');
+  }
+}
+
+/* =====================================================================
+   Static content rendering
+   ===================================================================== */
+function rubricTable(){
+  return `<table class="rubric"><thead><tr><th>#</th><th>Criterion</th><th>3 — Strong</th><th>2 — Developing</th><th>1 — Emerging</th><th>0</th></tr></thead><tbody>` +
+    GAME_CONFIG.rubric.map(r => `<tr><td>${r.id}</td><td><b>${esc(r.name)}</b></td><td>${esc(r.l3)}</td><td>${esc(r.l2)}</td><td>${esc(r.l1)}</td><td>${esc(r.l0)}</td></tr>`).join('') + `</tbody></table>`;
+}
+function methodHtml(compact){
+  return `<div class="steps6">` + GAME_CONFIG.method.map((s,i) => `<div class="step6"><b>${i+1}. ${esc(s.name)}</b><span class="muted">${esc(s.tag)}</span>${compact ? '' : `<ul>${s.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>`}</div>`).join('') + `</div>`;
+}
+function symbolsHtml(){
+  const rows = [
+    ['start','Start / End — where the process begins and ends'],
+    ['process','Process step — an activity (optional tag: Manual, Email…)'],
+    ['decision','Decision — a question; label each outgoing arrow'],
+    ['subprocess','Sub-process / Link — a separate process (link out)'],
+    ['document','Document / Form — a report, form or card'],
+    ['connector','Connector — jump to the matching letter']
+  ];
+  return `<div class="sym">` + rows.map(([t, d]) => `<div>${symbolIcon(t, 42, 28)}<span>${esc(d)}</span></div>`).join('') +
+    `<div><svg width="42" height="28" viewBox="0 0 42 28"><path d="M3,14h34" stroke="#374151" stroke-width="1.5"/><path d="M33,10l6,4-6,4z" fill="#374151"/></svg><span>Solid arrow — mandatory step</span></div>` +
+    `<div><svg width="42" height="28" viewBox="0 0 42 28"><path d="M3,14h34" stroke="#374151" stroke-width="1.5" stroke-dasharray="5 4"/><path d="M33,10l6,4-6,4z" fill="#374151"/></svg><span>Dashed arrow — optional step</span></div></div>`;
+}
+let exN = 0, exId = 'exa0';
+function exDefs(){ exId = 'exa' + (++exN); return `<defs><marker id="${exId}" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#374151"/></marker></defs>`; }
+function exLanes(a, b){
+  return `<rect x="0.5" y="0.5" width="639" height="299" fill="#fff" stroke="#9ca3af"/><line x1="0" y1="150" x2="640" y2="150" stroke="#9ca3af"/><rect x="0.5" y="0.5" width="34" height="299" fill="#f3f4f6" stroke="#9ca3af"/><line x1="0" y1="150" x2="35" y2="150" stroke="#9ca3af"/>
+  <text transform="translate(22,75) rotate(-90)" text-anchor="middle" font-size="10.5" font-weight="700">${a}</text><text transform="translate(22,225) rotate(-90)" text-anchor="middle" font-size="10.5" font-weight="700">${b}</text>`;
+}
+function exBox(x, y, w, h, lines, kind){
+  const cx = x + w/2, cy = y + h/2;
+  let s = kind === 'pill' ? `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h/2}" fill="#eef2f7" stroke="#374151"/>` : `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="#fff" stroke="#374151"/>`;
+  const y0 = cy - (lines.length - 1) * 6 + 3.5;
+  return s + `<text text-anchor="middle" font-size="10">` + lines.map((l,i) => `<tspan x="${cx}" y="${y0 + i*12}">${l}</tspan>`).join('') + `</text>`;
+}
+function exDiamond(cx, cy, lines){
+  return `<polygon points="${cx},${cy-30} ${cx+40},${cy} ${cx},${cy+30} ${cx-40},${cy}" fill="#f8fafc" stroke="#374151"/><text text-anchor="middle" font-size="10">` + lines.map((l,i) => `<tspan x="${cx}" y="${cy - (lines.length-1)*6 + 3.5 + i*12}">${l}</tspan>`).join('') + `</text>`;
+}
+const arr = (d, dash) => `<path d="${d}" fill="none" stroke="#374151" stroke-width="1.3" marker-end="url(#${exId})" ${dash ? 'stroke-dasharray="5 4"' : ''}/>`;
+const lab = (x, y, t) => `<text x="${x}" y="${y}" font-size="10" font-weight="700" fill="#111827">${t}</text>`;
+function exampleModel(){
+  return `<svg viewBox="0 0 640 300" font-family="Segoe UI, Helvetica, Arial, sans-serif">${exDefs()}${exLanes('Customer Service Agent','Warehouse Associate')}
+  ${exBox(48,45,92,32,['Return request','received'],'pill')}
+  ${exBox(160,40,92,42,['Verify order','details'])}
+  ${exDiamond(320,61,['Within','30 days?'])}
+  ${exBox(400,40,96,42,['Email return','label'])}
+  ${exBox(276,112,88,28,['Request declined'],'pill')}
+  ${exBox(400,195,96,42,['Inspect returned','item'])}
+  ${exBox(522,200,98,32,['Refund issued'],'pill')}
+  ${arr('M140,61 H158')}${arr('M252,61 H278')}${arr('M360,61 H398')}${lab(366,55,'Yes')}
+  ${arr('M320,91 V110')}${lab(326,104,'No')}
+  ${arr('M448,82 V193')}${arr('M496,216 H520')}</svg>`;
+}
+function exampleBad(){
+  return `<svg viewBox="0 0 640 300" font-family="Segoe UI, Helvetica, Arial, sans-serif">${exDefs()}${exLanes('Casey Lee','Lane 2')}
+  ${exBox(48,45,92,32,['Start'],'pill')}
+  ${exBox(160,40,92,42,['Return stuff'])}
+  ${exDiamond(320,61,['Check'])}
+  ${exBox(400,40,96,42,['Label'])}
+  ${exBox(276,195,88,42,['Look at item'])}
+  ${exBox(150,245,90,32,['End'],'pill')}
+  ${arr('M140,61 H158')}${arr('M252,61 H278')}${arr('M360,61 H398')}
+  ${arr('M320,91 V193')}
+  ${arr('M448,82 V170 H195 V243')}
+  <circle cx="320" cy="170" r="9" fill="none" stroke="#dc2626" stroke-width="2"/><circle cx="320" cy="244" r="9" fill="none" stroke="#dc2626" stroke-width="2"/><text x="334" y="248" font-size="9.5" fill="#dc2626">dead end</text></svg>`;
+}
+function examplesHtml(){
+  return `<div class="grid2">
+    <div class="ex good"><h3>✓ What good looks like</h3>${exampleModel()}<ul><li>Lanes named after roles</li><li>Start names the trigger; Ends name outcomes</li><li>Decision is a question with labeled Yes / No</li><li>Flows left-to-right, top-to-bottom; no crossings</li><li>Verb + object labels</li></ul></div>
+    <div class="ex bad"><h3>✗ What to avoid</h3>${exampleBad()}<ul><li>Lane named after a person; placeholder lane</li><li>Vague Start / End and labels (“Return stuff”)</li><li>Decision not a question; branches unlabeled</li><li>Crossing lines (circled)</li><li>Dead end: “Look at item” leads nowhere</li></ul></div></div>`;
+}
+function renderStatic(){
+  const G = GAME_CONFIG;
+  document.title = G.title + ' — ' + G.subtitle;
+  $('#hTitle').textContent = G.title; $('#hSub').textContent = G.subtitle;
+  // welcome
+  $('#wTitle').textContent = G.title + ': ' + G.subtitle;
+  $('#wOverview').textContent = G.overview;
+  $('#wPhases').innerHTML = `<li><b>Learn the method</b> — ${state.minutes.instruction} min</li><li><b>Read the SOP</b> — ${state.minutes.reading} min</li><li><b>Build your process map</b> — ${state.minutes.build} min</li><li><b>Reflect and debrief</b> — no time limit</li>`;
+  $('#wCoachNote').textContent = COACH_ON ? G.coachNote : '';
+  $('#baseItems').innerHTML = G.baseline.map((b, i) => `<fieldset class="field" style="border:0;padding:0;margin:0 0 14px"><legend class="qnum">${i+1}. ${esc(b.q)}</legend><div class="opts">` +
+    b.options.map((o, j) => `<label><input type="radio" name="bq${i}" value="${j}"> ${esc(o)}</label>`).join('') + `</div></fieldset>`).join('');
+  // instruction
+  const coachBlock = COACH_ON ? `<div class="card"><h3>Your built-in coach: AI Friend</h3><p>During the build, open <b>AI Friend</b> on the right. It looks at your map and gives short, targeted feedback — but <b>only when you ask</b>.</p>
+    <ul><li><b>Checkpoints</b> match the method: Boundaries → Level of detail → Logic → Visual clarity → Review my draft.</li><li><b>Give me a hint</b>: Level 1 nudges, Level 2 points to the SOP section, Level 3 explains the idea with an example.</li>
+    <li>After feedback, tell it <i>Got it</i>, <i>Not sure what this means</i>, or <i>I disagree</i>. It will never draw the map for you.</li><li>Feedback is most useful when you leave yourself time to act on it.</li></ul></div>` : '';
+  $('#instrBody').innerHTML = `
+    <div class="card"><h2>How to build a process map</h2>
+      <p class="lead">A process map shows <b>who</b> does <b>what</b>, in <b>what order</b>, and <b>where decisions</b> change the path. A good map lets someone who has never done the work follow it from start to finish.</p>
+      <div id="warmAns"></div></div>
+    <div class="card"><h3>The six-step method</h3>${methodHtml(false)}</div>
+    <div class="card"><h3>Key symbols</h3>${symbolsHtml()}<p class="muted" style="margin-top:10px">Swimlanes are horizontal bands — one per role (e.g., “Office Manager”). Each step sits in the lane of the role who does it.</p></div>
+    <div class="card"><h3>What good looks like</h3><ul class="checklist">${G.goodChecklist.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>
+    <div class="card"><h3>Example vs. non-example <small>(a generic returns process)</small></h3>${examplesHtml()}</div>
+    <div class="card"><h3>How your map will be judged</h3>${rubricTable()}</div>
+    <div class="card"><h3>Using the canvas</h3><ul>
+      <li><b>Add a shape:</b> drag it from the palette into a lane — or click it to drop it in the middle of the view.</li>
+      <li><b>Edit text:</b> double-click a shape, an arrow, or the process-name bar (or select and press Enter).</li>
+      <li><b>Connect:</b> hover a shape and drag from one of its blue dots onto the next shape. Arrows from a decision ask for a label.</li>
+      <li><b>Lanes:</b> “+ Lane” adds one; click a lane label to rename, reorder or delete it.</li>
+      <li><b>Fix mistakes:</b> Delete key, Undo (Ctrl+Z), Redo (Ctrl+Y). Arrow keys nudge a selected shape.</li></ul></div>
+    ${coachBlock}
+    <div class="actions"><span class="muted">The next step starts automatically when the timer ends.</span><button class="btn primary" id="btnInstrDone">I’m ready to read the SOP →</button></div>`;
+  $('#btnInstrDone').onclick = () => setPhase('reading', 'early');
+  // reading
+  $('#readBrief').innerHTML = `<p><b>Scenario.</b> ${esc(G.scenario)}</p><p><b>Objective.</b> ${esc(G.objective)}</p>`;
+  $('#readSop').innerHTML = G.sopHtml;
+  // brief tabs
+  const rules = COACH_ON ? G.rules : G.rules.slice(0, -1).concat(G.rulesNoCoach);
+  $('#tab-challenge').innerHTML = `<h3>Scenario</h3><p>${esc(G.scenario)}</p><h3>Objective</h3><p>${esc(G.objective)}</p>
+    <h3>Rules</h3><ul>${rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul><h3>Rubric</h3>` +
+    GAME_CONFIG.rubric.map(r => `<p><b>${r.id} ${esc(r.name)}.</b> ${esc(r.l3)}</p>`).join('');
+  $('#briefSop').innerHTML = G.sopHtml;
+  $('#tab-method').innerHTML = `<h3>Six-step method</h3>${methodHtml(false).replace('class="steps6"', 'class="steps6" style="grid-template-columns:1fr"')}
+    <h3 style="margin-top:14px">Key symbols</h3>${symbolsHtml().replace('class="sym"','class="sym" style="grid-template-columns:1fr"')}
+    <h3 style="margin-top:14px">What good looks like</h3><ul>${G.goodChecklist.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
+    <h3>Example</h3><div class="ex good">${exampleModel()}</div><h3 style="margin-top:10px">Non-example</h3><div class="ex bad">${exampleBad()}</div>`;
+  $$('#brief .tabs button').forEach(b => b.onclick = () => {
+    $$('#brief .tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    ['challenge','sop','method'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+    log('brief_tab', { tab: b.dataset.tab });
+  });
+  // stepper
+  $('#stepper').innerHTML = `<span class="lbl">Method:</span>` + G.method.map((s,i) => `<button data-step="${s.id}" data-s="" title="Click to mark: in progress → done">${i+1}. ${esc(s.name)}</button>`).join('');
+  $('#stepper').onclick = e => {
+    const b = e.target.closest('[data-step]'); if (!b || state.locked) return;
+    const cur = state.stepper[b.dataset.step] || '';
+    const nxt = cur === '' ? 'doing' : cur === 'doing' ? 'done' : '';
+    state.stepper[b.dataset.step] = nxt; b.dataset.s = nxt;
+    b.setAttribute('aria-label', `${b.textContent}: ${nxt || 'not started'}`);
+    log('stepper', { step: b.dataset.step, state: nxt || 'none' });
+  };
+  if (!COACH_ON) coachEl.remove();
+}
+
+/* =====================================================================
+   Welcome
+   ===================================================================== */
+function validateWelcome(){
+  const code = $('#pCode').value.trim();
+  const answered = GAME_CONFIG.baseline.every((b, i) => $(`input[name=bq${i}]:checked`));
+  const ok = code.length > 0 && state.baseline.confidence && answered;
+  $('#btnStart').disabled = !ok;
+  $('#wHint').textContent = ok ? 'Ready when you are.' : 'Enter your code and answer the questions to begin.';
+}
+scaleButtons($('#baseConf'), v => { state.baseline.confidence = v; validateWelcome(); });
+$('#pCode').addEventListener('input', validateWelcome);
+$('#baseItems').addEventListener('change', validateWelcome);
+$('#btnStart').onclick = () => {
+  state.participant = $('#pCode').value.trim().replace(/[^\w.-]/g, '_').slice(0, 20);
+  state.baseline.answers = GAME_CONFIG.baseline.map((b, i) => { const v = +$(`input[name=bq${i}]:checked`).value; return { q: b.q, chosen: b.options[v], correct: v === b.answer }; });
+  state.t0 = Date.now(); state.startedAt = new Date().toISOString();
+  log('session_start', { participant: state.participant, condition: state.condition, minutes: state.minutes, version: GAME_CONFIG.version });
+  log('baseline', { confidence: state.baseline.confidence, answers: state.baseline.answers, score: state.baseline.answers.filter(a => a.correct).length });
+  $('#pChip').textContent = state.participant; $('#pChip').classList.remove('hidden');
+  $('#warmAns').innerHTML = `<div class="banner"><b>Warm-up answers:</b><ol style="margin:.3em 0 0">` +
+    GAME_CONFIG.baseline.map((b, i) => `<li>${esc(b.options[b.answer])} — ${esc(b.explain)} ${state.baseline.answers[i].correct ? '<b style="color:var(--green)">(you got it)</b>' : ''}</li>`).join('') + `</ol></div>`;
+  setPhase('instruction', 'start');
+};
+$('#btnReadDone').onclick = () => enterBuild('early');
+
+/* =====================================================================
+   Build phase
+   ===================================================================== */
+function enterBuild(how){
+  setPhase('build', how);
+  state.flow = newFlow(); state.locked = false; state.undo = []; state.redo = [];
+  buildToolbar(); render(); renderPropbar();
+  if (COACH_ON){ buildCoachUI(); renderCoach(); }
+  setTimeout(fitView, 50);
+  snapshot('build-start');
+  state.snapTimer = setInterval(() => { if (state.phase === 'build' && !state.locked) snapshot('interval-2min'); }, 120000);
+}
+$('#btnSubmit').onclick = () => {
+  if (state.phase !== 'build') return;
+  if (!confirm('Submit your map? You won’t be able to edit it afterwards.')) return;
+  finishBuild('submitted');
+};
+function finishBuild(reason){
+  if (state.locked && state.phase !== 'build') return;
+  closeEditor(true);
+  state.locked = true; state.ended = reason; drag = null;
+  clearInterval(state.snapTimer); clearInterval(state.timerId);
+  state.sel = null; render(); renderPropbar();
+  if (COACH_ON){ coachBusy(false); $$('#cpList button, #btnHint, #cform button, #cinput').forEach(x => x.disabled = true); renderCoach(); }
+  const s = snapshot('final');
+  state.finalFlow = clone(state.flow);
+  state.finalAnalysis = analyze(state.flow);
+  const draft = state.cp5.length ? state.cp5[0] : null;
+  state.draftAnalysis = draft ? analyze(draft.draftFlow) : null;
+  log('build_end', { reason, hash: s.hash, scores: state.finalAnalysis.scores, total: state.finalAnalysis.total, remainingMs: Math.max(0, (state.phaseEnd || 0) - Date.now()) });
+  $('#confTitle').textContent = reason === 'time-up' ? 'Time’s up — your map is locked' : 'Map submitted — your map is locked';
+  setPhase('confidence', reason);
+}
+scaleButtons($('#finalConf'), v => { state.finalConfidence = v; $('#btnConfNext').disabled = false; });
+$('#btnConfNext').onclick = () => {
+  log('final_confidence', { confidence: state.finalConfidence });
+  const set = !COACH_ON ? 'noCoach' : (state.requests === 0 ? 'noRequests' : 'feedback');
+  state.reflSet = set;
+  const qs = GAME_CONFIG.reflection[set];
+  $('#reflBody').innerHTML = qs.map((q, i) => `<div class="field"><label class="lbl" for="rf-${q.id}">${i+1}. ${esc(q.q)} ${q.req ? '<span class="req">*</span>' : '<span class="muted">(optional)</span>'}</label><textarea id="rf-${q.id}" data-q="${q.id}"></textarea></div>`).join('');
+  const check = () => {
+    const ok = qs.filter(q => q.req).every(q => ($('#rf-' + q.id).value.trim().length >= 3));
+    $('#btnReflNext').disabled = !ok;
+    $('#reflHint').textContent = ok ? '' : 'Please answer the required questions.';
+  };
+  $('#reflBody').oninput = check; check();
+  setPhase('reflection', 'continue');
+};
+$('#btnReflNext').onclick = () => {
+  const qs = GAME_CONFIG.reflection[state.reflSet];
+  qs.forEach(q => state.reflection[q.id] = { q: q.q, a: $('#rf-' + q.id).value.trim() });
+  log('reflection', { set: state.reflSet, answers: state.reflection });
+  renderDebrief(); setPhase('debrief', 'continue');
+};
+
+/* =====================================================================
+   Debrief
+   ===================================================================== */
+function diffFlows(a, b){
+  const A = Object.fromEntries(a.nodes.map(n => [n.id, n])), B = Object.fromEntries(b.nodes.map(n => [n.id, n]));
+  const hl = {}, added = [], removed = [], changed = [];
+  b.nodes.forEach(n => {
+    const o = A[n.id];
+    if (!o){ hl[n.id] = 'added'; added.push(n); }
+    else if (o.label !== n.label || o.type !== n.type || o.laneId !== n.laneId || (o.systemTag || '') !== (n.systemTag || '')){ hl[n.id] = 'changed'; changed.push(n); }
+  });
+  a.nodes.forEach(n => { if (!B[n.id]) removed.push(n); });
+  const ek = e => e.source + '>' + e.target + ':' + (e.label || '');
+  const ea = new Set(a.edges.map(ek)), eb = new Set(b.edges.map(ek));
+  return { hl, added, removed, changed, edgesAdded: [...eb].filter(k => !ea.has(k)).length, edgesRemoved: [...ea].filter(k => !eb.has(k)).length };
+}
+function streamQuestion(an){
+  for (const s of COACH_CONFIG.streamlining){
+    if (s.when === 'noNotify' && !COACH_CONFIG.patterns.notify.test(an.allText)) return s.q;
+    if (s.when === 'always') return s.q;
+  }
+  return '';
+}
+function uptake(){
+  const edits = state.events.filter(e => e.type === 'edit');
+  const MAP = { C1:['addNode','deleteNode','relabelNode'], C2:['addNode','deleteNode','relabelNode'], C3:['addNode','deleteNode','relabelNode'], C4:['relabelNode','renameLane','relabelEdge'],
+    C5:['addEdge','deleteEdge','relabelEdge','addNode','relabelNode'], C6:['renameLane','addLane','deleteLane','moveLane','laneChangeNode'], C7:['moveNode','moveLane','laneChangeNode','addNode','deleteEdge'], C8:['addNode','deleteNode','relabelNode','styleEdge'] };
+  return state.events.filter(e => e.type === 'coach_response' && (e.kind === 'hint' || /^cp\d$/.test(e.kind)) && e.issues && e.issues.length).map(r => {
+    const win = edits.filter(x => x.t > r.t && x.t <= r.t + 180000);
+    const crit = r.criteria || [];
+    const related = win.some(x => crit.some(c => (MAP[c] || []).includes(x.op)));
+    const inWin = state.snapshots.filter(s => s.t > r.t && s.t <= r.t + 180000);
+    const next = inWin.length ? inWin[inWin.length - 1] : state.snapshots.find(s => s.t > r.t);
+    return { t: r.t, msg: r.msg, kind: r.kind, level: r.level || null, criteria: crit, issues: r.issues, repeatNoChange: !!r.repeatNoChange,
+      changedWithin3min: win.length > 0, editsWithin3min: win.length, relatedEdit: related,
+      scoreAtRequest: r.scores ? crit.map(c => r.scores[c]) : null, scoreNextSnapshot: next ? crit.map(c => next.scores[c]) : null,
+      response: (state.events.find(x => x.type === 'feedback_response' && x.msg === r.msg) || {}).response || null };
+  });
+}
+function scoreTable(an, draftAn){
+  return `<table class="rubric"><thead><tr><th>Criterion</th><th>Score</th>${draftAn ? '<th>Draft</th>' : ''}<th>Evidence</th></tr></thead><tbody>` +
+    GAME_CONFIG.rubric.map(r => `<tr class="score-row"><td><b>${r.id}</b> ${esc(r.name)}</td><td><span class="dots" aria-label="${an.scores[r.id]} of 3">${'●'.repeat(an.scores[r.id])}${'○'.repeat(3 - an.scores[r.id])}</span> ${an.scores[r.id]}/3</td>${draftAn ? `<td>${draftAn.scores[r.id]}/3</td>` : ''}<td>${esc(an.evidence[r.id])}</td></tr>`).join('') + `</tbody></table>`;
+}
+function renderDebrief(){
+  const an = state.finalAnalysis, draft = state.cp5.length ? state.cp5[0] : null, dAn = state.draftAnalysis;
+  const strengths = []; an.strengths.forEach(s => { if (strengths.length < 2 && !strengths.some(x => x.c === s.c)) strengths.push(s); });
+  const imps = []; an.issues.forEach(i => { if (imps.length < 2 && !imps.some(x => x.c === i.c)) imps.push(i); });
+  const df = draft ? diffFlows(draft.draftFlow, state.finalFlow) : null;
+  const mapSvg = standaloneSvg(state.finalFlow, { highlight: df ? df.hl : null, numbering: state.numbering, tight: true }).replace('<svg ', '<svg style="width:100%;min-width:760px;height:auto" ');
+  const convo = state.coachMsgs.map(m => m.role === 'l' ? `<div class="cm l">${esc(m.text)}</div>` : `<div class="cm c">${m.html}${m.response ? `<div class="refs">Your response: ${esc({got:'Got it',unsure:'Not sure what this means',disagree:'I disagree'}[m.response])}${m.disagreeReason ? ' — “' + esc(m.disagreeReason) + '”' : ''}</div>` : ''}</div>`).join('');
+  $('#debriefBody').innerHTML = `
+    <div class="card"><h2>Debrief</h2><p class="muted">Participant ${esc(state.participant)} · ${state.ended === 'time-up' ? 'time ran out' : 'submitted'} · ${COACH_ON ? `${state.requests} AI Friend request(s)` : 'no-coach condition'}</p></div>
+    <div class="card"><h3>Your final map</h3>
+      ${df ? `<div class="legend-hl" style="margin-bottom:6px"><span><i class="sw" style="border-color:#15803d"></i>Added after your draft review</span><span><i class="sw" style="border-color:#b45309"></i>Changed after your draft review</span>${df.removed.length ? `<span>Removed: ${df.removed.map(n => '“' + esc(trunc(n.label, 24)) + '”').join(', ')}</span>` : ''}</div>` : ''}
+      <div class="mapbox">${mapSvg}</div></div>
+    <div class="card"><h3>Your scorecard <small>— automated formative estimate, not a grade</small></h3>
+      <p><span class="total">${an.total} / 24</span>${dAn ? ` <span class="muted">(at your draft review: ${dAn.total} / 24)</span>` : ''}</p>${scoreTable(an, dAn)}</div>
+    <div class="grid2">
+      <div class="card"><h3>Strengths</h3><ul>${strengths.map(s => `<li>${esc(s.text)}</li>`).join('') || '<li>You completed the exercise.</li>'}</ul></div>
+      <div class="card"><h3>Priority improvements</h3><ul>${imps.map(i => { const t = COACH_CONFIG.issues[i.id]; return `<li><b>${fill(t.what, i.vars)}</b> ${fill(t.why, i.vars)}</li>`; }).join('') || '<li>No high-priority issues detected — compare your map with a colleague’s to find refinements.</li>'}</ul></div>
+    </div>
+    <div class="card"><h3>Streamlining question</h3><p>${esc(streamQuestion(an))}</p></div>
+    ${df ? `<div class="card"><h3>Draft vs. final</h3><p>After your draft review you added ${df.added.length} shape(s), changed ${df.changed.length}, removed ${df.removed.length}, and added/removed ${df.edgesAdded}/${df.edgesRemoved} arrow(s). Score moved from <b>${dAn.total}</b> to <b>${an.total}</b> out of 24.
+      Confidence: ${draft.pre}/5 before review → ${draft.post != null ? draft.post + '/5 after revising' : 'not re-rated'} → ${state.finalConfidence}/5 at the end.</p></div>` : ''}
+    <div class="card"><h3>Things a sharp reader might notice in this SOP</h3><ul>${GAME_CONFIG.sopQuirks.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>
+    ${COACH_ON && state.coachMsgs.length ? `<div class="card"><h3>Your AI Friend conversation</h3><div class="convo">${convo}</div></div>` : ''}
+    <div class="card"><h3>Debrief discussion <small>(optional — jot notes for the group discussion)</small></h3>
+      ${GAME_CONFIG.debriefPrompts.map((q, i) => `<div class="field"><label class="lbl" for="db-${i}">${esc(q)}</label><textarea id="db-${i}" data-db="${i}"></textarea></div>`).join('')}</div>
+    <div class="card no-print"><h3>Save your results</h3><p class="muted">Download your data before closing the tab — nothing is stored once you leave this page.</p>
+      <div class="actions" style="justify-content:flex-start">
+        <button class="btn primary" data-export="json">Download data (JSON)</button>
+        <button class="btn" data-export="csv">Download event log (CSV)</button>
+        <button class="btn" data-export="png">Download map (PNG)</button>
+        <button class="btn" data-export="pdf">Print / save debrief as PDF</button>
+      </div>
+      <div class="actions"><button class="btn" id="btnFinish">Finish session</button></div></div>`;
+  $('#debriefBody').oninput = e => { const t = e.target.closest('[data-db]'); if (t) state.debrief[GAME_CONFIG.debriefPrompts[+t.dataset.db]] = t.value; };
+  $('#btnFinish').onclick = () => {
+    log('debrief_answers', { answers: state.debrief });
+    $('#doneStatus').textContent = state.exported ? 'Your data has been downloaded.' : 'You haven’t downloaded your data yet — please use the buttons below.';
+    setPhase('done', 'finish');
+  };
+}
+
+/* =====================================================================
+   Exports
+   ===================================================================== */
+function fileBase(){ return `PFC_${state.participant || 'anon'}_${new Date().toISOString().slice(0,10)}`; }
+function sessionData(){
+  return {
+    meta: { game: GAME_CONFIG.title + ' — ' + GAME_CONFIG.subtitle, version: GAME_CONFIG.version, participant: state.participant, condition: state.condition,
+      minutes: state.minutes, startedAt: state.startedAt, exportedAt: new Date().toISOString(), endedBy: state.ended, userAgent: navigator.userAgent },
+    baseline: state.baseline,
+    summary: { coachRequests: state.requests, finalConfidence: state.finalConfidence,
+      finalScores: state.finalAnalysis ? state.finalAnalysis.scores : null, finalTotal: state.finalAnalysis ? state.finalAnalysis.total : null,
+      draftTotal: state.draftAnalysis ? state.draftAnalysis.total : null, stepper: state.stepper },
+    cp5Cycles: state.cp5.map(c => ({ n:c.n, preConfidence:c.pre, postConfidence:c.post, change:c.change || null, tPre:c.tPre, tPost:c.tPost || null,
+      draftTotal:c.draftTotal, postTotal:c.postTotal ?? null, draftScores:c.draftScores, postScores:c.postScores || null, draftHash:c.draftHash, postHash:c.postHash || null })),
+    reflection: state.reflection, debrief: state.debrief,
+    assessment: state.finalAnalysis ? { scores: state.finalAnalysis.scores, total: state.finalAnalysis.total, evidence: state.finalAnalysis.evidence,
+      issues: state.finalAnalysis.issues.map(i => ({ key:i.key, criterion:i.c })), strengths: state.finalAnalysis.strengths } : null,
+    uptake: uptake(),
+    coachMessages: state.coachMsgs.map(m => ({ id:m.id, role:m.role === 'l' ? 'learner' : 'coach', t:m.t, kind:m.kind || null, text: m.text || m.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+      issues: m.issues || null, response: m.response || null, disagreeReason: m.disagreeReason || null })),
+    finalFlow: state.finalFlow ? flowJSON(state.finalFlow) : (state.flow ? flowJSON(state.flow) : null),
+    snapshots: state.snapshots,
+    events: state.events
+  };
+}
+function toCSV(){
+  const head = ['participant','condition','t_ms','elapsed','phase','type','detail'];
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const rows = state.events.map(e => {
+    const { t, phase, type, ...rest } = e;
+    return [state.participant, state.condition, t, fmt(t), phase, type, JSON.stringify(rest)].map(q).join(',');
+  });
+  return head.join(',') + '\n' + rows.join('\n');
+}
+function exportPNG(){
+  const flow = state.finalFlow || state.flow; if (!flow) { toast('No map yet.'); return; }
+  const svg = standaloneSvg(flow, { numbering: state.numbering, tight: true });
+  const W = +svg.match(/width="(\d+(\.\d+)?)"/)[1], H = canvasH(flow), scale = 2;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = W * scale; c.height = H * scale;
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+    c.toBlob(b => download(fileBase() + '_map.png', b), 'image/png');
+  };
+  img.onerror = () => download(fileBase() + '_map.svg', svg, 'image/svg+xml');
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+function doExport(kind){
+  if (kind === 'json'){ download(fileBase() + '.json', JSON.stringify(sessionData(), null, 2), 'application/json'); state.exported = true; }
+  else if (kind === 'csv'){ download(fileBase() + '_events.csv', toCSV(), 'text/csv'); }
+  else if (kind === 'png') exportPNG();
+  else if (kind === 'pdf'){ window.print(); }
+  log('export', { kind });
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-export]'); if (b) doExport(b.dataset.export); });
+$('#facExport').onclick = () => { doExport('json'); $('details.fac').open = false; };
+$('#facReset').onclick = () => {
+  if (!confirm('Reset the session? All unsaved data for this participant will be lost.')) return;
+  state.resetting = true; location.reload();
+};
+window.addEventListener('beforeunload', e => {
+  if (state.resetting || state.phase === 'welcome' || state.exported) return;
+  e.preventDefault(); e.returnValue = '';
+});
+
+/* =====================================================================
+   Init
+   ===================================================================== */
+renderStatic();
+validateWelcome();
+</script>
+</body>
+</html>
