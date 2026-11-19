@@ -82,3 +82,55 @@ cross join lateral jsonb_array_elements(coalesce(s.payload->'uptake', '[]'::json
 
 revoke all on public.session_summary from anon, authenticated;
 revoke all on public.feedback_uptake from anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Results dashboard (/results): returns all sessions ONLY with the correct
+-- facilitator passcode. The passcode is stored as a bcrypt hash in a schema
+-- the public API cannot see.
+-- ---------------------------------------------------------------------------
+create schema if not exists app_private;
+revoke all on schema app_private from public, anon, authenticated;
+create table if not exists app_private.settings (key text primary key, value text not null);
+
+create or replace function public.get_results(passcode text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions, app_private
+as $$
+declare h text;
+begin
+  select value into h from app_private.settings where key = 'results_passcode_hash';
+  if h is null or crypt('TYPE-YOUR-PASSCODE-HERE', h) = h then
+    raise exception 'No results passcode has been set yet' using errcode = '28000';
+  end if;
+  if passcode is null or length(passcode) < 6 or crypt(passcode, h) <> h then
+    perform pg_sleep(1.5);
+    raise exception 'Incorrect passcode' using errcode = '28P01';
+  end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'session_id', s.session_id, 'participant', s.participant, 'condition', s.condition,
+      'last_saved_at', s.last_saved_at, 'last_save', s.last_save, 'ended_by', s.ended_by,
+      'coach_requests', s.coach_requests, 'first_request_min', s.first_request_min_into_build,
+      'draft_total', s.draft_total, 'final_total', s.final_total,
+      'baseline_confidence', s.baseline_confidence, 'final_confidence', s.final_confidence,
+      'scores', s.payload->'assessment'->'scores', 'reflection', s.payload->'reflection',
+      'debrief', s.payload->'debrief', 'flow', s.payload->'finalFlow', 'uptake', s.payload->'uptake',
+      'cp5', s.payload->'cp5Cycles', 'baseline', s.payload->'baseline', 'minutes', s.payload->'meta'->'minutes',
+      'coach_messages', s.payload->'coachMessages',
+      'events', (select coalesce(jsonb_agg(e), '[]'::jsonb)
+                 from jsonb_array_elements(coalesce(s.payload->'events', '[]'::jsonb)) e
+                 where e->>'type' in ('phase', 'coach_request', 'feedback_response'))
+    ) order by s.last_saved_at desc)
+    from public.session_summary s), '[]'::jsonb);
+end;
+$$;
+revoke all on function public.get_results(text) from public, anon, authenticated;
+grant execute on function public.get_results(text) to anon;
+
+-- Set or change the dashboard passcode (at least 6 characters). Edit the text
+-- between the quotes, then run ONLY this statement:
+-- insert into app_private.settings (key, value)
+-- values ('results_passcode_hash', extensions.crypt('TYPE-YOUR-PASSCODE-HERE', extensions.gen_salt('bf')))
+-- on conflict (key) do update set value = excluded.value;
