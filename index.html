@@ -190,6 +190,7 @@ table.rubric th{background:var(--soft)}
 .sw{display:inline-block;width:14px;height:14px;border-radius:3px;border:2.5px solid}
 .convo .cm{max-width:100%}
 .convo{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto}
+.cloudstatus{font-weight:600}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;z-index:100;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 
 @media print{
@@ -217,6 +218,7 @@ table.rubric th{background:var(--soft)}
     <details class="fac no-print">
       <summary aria-label="Facilitator menu">Facilitator ▾</summary>
       <div class="facmenu">
+        <button id="facSave">Save to database now</button>
         <button id="facExport">Export data (JSON)</button>
         <button id="facReset">Reset session…</button>
       </div>
@@ -703,6 +705,20 @@ const COACH_CONFIG = {
 };
 
 /* =====================================================================
+   DATA_CONFIG — where finished sessions are saved (Supabase).
+   The publishable key is designed to be public: the table's security
+   rules only allow inserting new rows — nobody can read, change or
+   delete data from the browser. Leave both blank to disable saving
+   (players then use the Download buttons only).
+   ===================================================================== */
+const DATA_CONFIG = {
+  supabaseUrl: 'https://tekrmifuyhvfidxwkiup.supabase.co',
+  supabaseKey: 'sb_publishable_fTIryiamwm2k3WODqqSgFg_QIsnUhtQ',   // publishable key: safe to be public
+  table: 'session_saves',
+  autosaveMs: 180000          // also save every 3 minutes during the build
+};
+
+/* =====================================================================
    Utilities
    ===================================================================== */
 const $ = (s, r=document) => r.querySelector(s);
@@ -749,8 +765,14 @@ const state = {
   events: [], snapshots: [], coachMsgs: [], requests: 0, lastCp: {}, dismissed: new Set(),
   cp5: [], cp5Open: null, finalConfidence: null, reflection: {}, reflSet: null, debrief: {},
   finalAnalysis: null, draftAnalysis: null, finalFlow: null, stepper: {},
-  exported: false, warned5: false, coachOpen: false, flash: new Set(), resetting: false, ended: null
+  exported: false, warned5: false, coachOpen: false, flash: new Set(), resetting: false, ended: null,
+  sessionId: newId(), cloud: { status: 'idle', at: null, savedEvents: -1, error: null }, autosaveTimer: null
 };
+function newId(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  const h = () => Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
+  return `${h()}${h()}-${h()}-4${h().slice(1)}-${(8 + Math.floor(Math.random() * 4)).toString(16)}${h().slice(1)}-${h()}${h()}${h()}`;
+}
 [['instruction','teach'],['reading','read'],['build','build']].forEach(([k,p]) => {
   const v = parseFloat(params.get(p)); if (v > 0 && v <= 180) state.minutes[k] = v;
 });
@@ -2076,6 +2098,7 @@ $('#btnStart').onclick = () => {
   state.t0 = Date.now(); state.startedAt = new Date().toISOString();
   log('session_start', { participant: state.participant, condition: state.condition, minutes: state.minutes, version: GAME_CONFIG.version });
   log('baseline', { confidence: state.baseline.confidence, answers: state.baseline.answers, score: state.baseline.answers.filter(a => a.correct).length });
+  saveToCloud('start');
   $('#pChip').textContent = state.participant; $('#pChip').classList.remove('hidden');
   $('#warmAns').innerHTML = `<div class="banner"><b>Warm-up answers:</b><ol style="margin:.3em 0 0">` +
     GAME_CONFIG.baseline.map((b, i) => `<li>${esc(b.options[b.answer])} — ${esc(b.explain)} ${state.baseline.answers[i].correct ? '<b style="color:var(--green)">(you got it)</b>' : ''}</li>`).join('') + `</ol></div>`;
@@ -2094,6 +2117,7 @@ function enterBuild(how){
   setTimeout(fitView, 50);
   snapshot('build-start');
   state.snapTimer = setInterval(() => { if (state.phase === 'build' && !state.locked) snapshot('interval-2min'); }, 120000);
+  state.autosaveTimer = setInterval(() => { if (state.phase === 'build' && !state.locked) saveToCloud('autosave'); }, DATA_CONFIG.autosaveMs);
 }
 $('#btnSubmit').onclick = () => {
   if (state.phase !== 'build') return;
@@ -2104,7 +2128,7 @@ function finishBuild(reason){
   if (state.locked && state.phase !== 'build') return;
   closeEditor(true);
   state.locked = true; state.ended = reason; drag = null;
-  clearInterval(state.snapTimer); clearInterval(state.timerId);
+  clearInterval(state.snapTimer); clearInterval(state.timerId); clearInterval(state.autosaveTimer);
   state.sel = null; render(); renderPropbar();
   if (COACH_ON){ coachBusy(false); $$('#cpList button, #btnHint, #cform button, #cinput').forEach(x => x.disabled = true); renderCoach(); }
   const s = snapshot('final');
@@ -2113,6 +2137,7 @@ function finishBuild(reason){
   const draft = state.cp5.length ? state.cp5[0] : null;
   state.draftAnalysis = draft ? analyze(draft.draftFlow) : null;
   log('build_end', { reason, hash: s.hash, scores: state.finalAnalysis.scores, total: state.finalAnalysis.total, remainingMs: Math.max(0, (state.phaseEnd || 0) - Date.now()) });
+  saveToCloud('build-end');
   $('#confTitle').textContent = reason === 'time-up' ? 'Time’s up — your map is locked' : 'Map submitted — your map is locked';
   setPhase('confidence', reason);
 }
@@ -2136,6 +2161,7 @@ $('#btnReflNext').onclick = () => {
   qs.forEach(q => state.reflection[q.id] = { q: q.q, a: $('#rf-' + q.id).value.trim() });
   log('reflection', { set: state.reflSet, answers: state.reflection });
   renderDebrief(); setPhase('debrief', 'continue');
+  saveToCloud('reflection');
 };
 
 /* =====================================================================
@@ -2206,7 +2232,7 @@ function renderDebrief(){
     ${COACH_ON && state.coachMsgs.length ? `<div class="card"><h3>Your AI Friend conversation</h3><div class="convo">${convo}</div></div>` : ''}
     <div class="card"><h3>Debrief discussion <small>(optional — jot notes for the group discussion)</small></h3>
       ${GAME_CONFIG.debriefPrompts.map((q, i) => `<div class="field"><label class="lbl" for="db-${i}">${esc(q)}</label><textarea id="db-${i}" data-db="${i}"></textarea></div>`).join('')}</div>
-    <div class="card no-print"><h3>Save your results</h3><p class="muted">Download your data before closing the tab — nothing is stored once you leave this page.</p>
+    <div class="card no-print"><h3>Save your results</h3><p id="cloudStatus" class="cloudstatus"></p><p class="muted">You can also download a copy for your own records.</p>
       <div class="actions" style="justify-content:flex-start">
         <button class="btn primary" data-export="json">Download data (JSON)</button>
         <button class="btn" data-export="csv">Download event log (CSV)</button>
@@ -2214,11 +2240,13 @@ function renderDebrief(){
         <button class="btn" data-export="pdf">Print / save debrief as PDF</button>
       </div>
       <div class="actions"><button class="btn" id="btnFinish">Finish session</button></div></div>`;
+  updateCloudStatus();
   $('#debriefBody').oninput = e => { const t = e.target.closest('[data-db]'); if (t) state.debrief[GAME_CONFIG.debriefPrompts[+t.dataset.db]] = t.value; };
   $('#btnFinish').onclick = () => {
     log('debrief_answers', { answers: state.debrief });
-    $('#doneStatus').textContent = state.exported ? 'Your data has been downloaded.' : 'You haven’t downloaded your data yet — please use the buttons below.';
     setPhase('done', 'finish');
+    updateCloudStatus();
+    saveToCloud('finish');
   };
 }
 
@@ -2228,7 +2256,7 @@ function renderDebrief(){
 function fileBase(){ return `PFC_${state.participant || 'anon'}_${new Date().toISOString().slice(0,10)}`; }
 function sessionData(){
   return {
-    meta: { game: GAME_CONFIG.title + ' — ' + GAME_CONFIG.subtitle, version: GAME_CONFIG.version, participant: state.participant, condition: state.condition,
+    meta: { game: GAME_CONFIG.title + ' — ' + GAME_CONFIG.subtitle, version: GAME_CONFIG.version, sessionId: state.sessionId, participant: state.participant, condition: state.condition,
       minutes: state.minutes, startedAt: state.startedAt, exportedAt: new Date().toISOString(), endedBy: state.ended, userAgent: navigator.userAgent },
     baseline: state.baseline,
     summary: { coachRequests: state.requests, finalConfidence: state.finalConfidence,
@@ -2284,8 +2312,64 @@ $('#facReset').onclick = () => {
 };
 window.addEventListener('beforeunload', e => {
   if (state.resetting || state.phase === 'welcome' || state.exported) return;
+  if (state.cloud.status === 'saved' && state.cloud.savedEvents === state.events.length) return; // everything already in the database
   e.preventDefault(); e.returnValue = '';
 });
+
+/* =====================================================================
+   Study database (Supabase) — insert-only saves of the whole session
+   ===================================================================== */
+const cloudOn = () => !!(DATA_CONFIG.supabaseUrl && DATA_CONFIG.supabaseKey);
+function cloudRow(reason, slim){
+  const d = sessionData();
+  if (slim){ d.snapshots = d.snapshots.slice(-1); }
+  const bs = (state.events.find(e => e.type === 'phase' && e.to === 'build') || {}).t;
+  const fr = (state.events.find(e => e.type === 'coach_request') || {}).t;
+  return {
+    session_id: state.sessionId, save_reason: reason, participant: state.participant || 'unknown', condition: state.condition,
+    game_version: GAME_CONFIG.version, phase: state.phase, ended_by: state.ended, coach_requests: state.requests,
+    build_start_s: bs != null ? Math.round(bs / 1000) : null,
+    first_request_s: (fr != null && bs != null) ? Math.round((fr - bs) / 1000) : null,
+    draft_total: state.draftAnalysis ? state.draftAnalysis.total : null,
+    final_total: state.finalAnalysis ? state.finalAnalysis.total : null,
+    baseline_confidence: state.baseline.confidence, final_confidence: state.finalConfidence,
+    client_saved_at: new Date().toISOString(), payload: d
+  };
+}
+async function saveToCloud(reason, opts = {}){
+  if (!cloudOn() || !state.participant){ updateCloudStatus(); return false; }
+  let body = JSON.stringify(cloudRow(reason, opts.slim));
+  if (opts.keepalive && body.length > 60000){ const r = cloudRow(reason, true); r.payload.events = r.payload.events.slice(-200); r.payload.snapshots = []; body = JSON.stringify(r); }
+  const evCount = state.events.length;
+  const key = DATA_CONFIG.supabaseKey;
+  const headers = { 'apikey': key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+  if (!key.startsWith('sb_')) headers.Authorization = 'Bearer ' + key; // legacy JWT-style anon keys
+  state.cloud.status = 'saving'; updateCloudStatus();
+  try {
+    const res = await fetch(DATA_CONFIG.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/' + DATA_CONFIG.table, { method: 'POST', headers, body, keepalive: !!opts.keepalive });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0, 200));
+    state.cloud = { status: 'saved', at: new Date(), savedEvents: evCount, error: null };
+    updateCloudStatus(); return true;
+  } catch (err){
+    state.cloud.status = 'error'; state.cloud.error = String(err && err.message || err);
+    updateCloudStatus();
+    if (!opts.retried && !opts.keepalive) setTimeout(() => saveToCloud(reason, { retried: true }), 4000);
+    return false;
+  }
+}
+function updateCloudStatus(){
+  const c = state.cloud;
+  const msg = !cloudOn() ? (state.exported ? 'Your data has been downloaded.' : 'Please download your data before closing this tab — this copy of the game isn’t connected to the study database.')
+    : c.status === 'saving' ? 'Saving to the study database…'
+    : c.status === 'saved' ? `✓ Saved to the study database at ${c.at.toLocaleTimeString()}. You can close this tab.`
+    : c.status === 'error' ? 'Couldn’t reach the study database. Please use “Download data (JSON)” so nothing is lost.'
+    : '';
+  ['#cloudStatus', '#doneStatus'].forEach(s => { const el = $(s); if (el) el.textContent = msg; });
+}
+window.addEventListener('pagehide', () => {
+  if (state.phase !== 'welcome' && state.participant && state.cloud.savedEvents !== state.events.length) saveToCloud('pagehide', { keepalive: true, slim: true });
+});
+$('#facSave').onclick = () => { saveToCloud('facilitator'); $('details.fac').open = false; toast(cloudOn() ? 'Saving to the study database…' : 'Study database not connected.'); };
 
 /* =====================================================================
    Init

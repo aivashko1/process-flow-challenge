@@ -1,9 +1,11 @@
 # Process Flow Challenge: Caffeine Distribution
 
-A self-contained, browser-based learning game for process mapping. It is one file, `index.html`:
+A browser-based learning game for process mapping, in a single file, `index.html`:
 
-- no installs, accounts or API keys
-- no network calls after the page loads
+- no installs or accounts for players
+- the only network calls are the session saves to Supabase
+
+Hosted on **Vercel**, which redeploys automatically on every push to `main`.
 
 ## Run it locally
 Double-click `index.html`. It opens in Chrome, Edge, Safari or Firefox.
@@ -24,12 +26,24 @@ Double-click `index.html`. It opens in Chrome, Edge, Safari or Firefox.
 
 The timers default to 5 / 5 / 15 minutes (instruction / SOP reading / build).
 
-## Collecting data
-- Nothing is stored on a server or in the browser.
-- At the end of a session, the participant (or facilitator) clicks **Download data (JSON)** on the Debrief or Thank-you screen. The **Facilitator ▾** menu also exports at any time.
-- Files are named like `PFC_P01_2026-11-10.json`.
-- An event-log CSV and a PNG of the final map are also available.
-- If the tab is closed before export, the browser shows a warning.
+## Collecting data (Supabase)
+Sessions save automatically to the Supabase project **process-flow-challenge** (organization: Team Ivashko). The game saves:
+- at Start
+- every 3 minutes during the build
+- when the build ends
+- after the reflection
+- when the player clicks Finish
+- when the tab closes (best effort)
+
+Each save is a new row in `session_saves`; nothing is overwritten.
+
+**Reading results:** in the Supabase dashboard, open **Table Editor**:
+- `session_summary`: one row per player, from their latest save. It shows code, condition, number of AI Friend requests, when the first one came, draft and final scores, confidence at start and end, and all reflection answers. The full session record is in `payload`.
+- `feedback_uptake`: one row per piece of feedback. It shows when the feedback came, which criteria it covered, whether the player revised within 3 minutes, whether the edit matched the feedback, and the score before and after.
+
+**Security:** the game uses Supabase's *publishable* key, which is designed to be public. Database rules allow a browser only to *add* rows; reading, changing or deleting data from the browser is refused. The full setup is in `supabase-setup.sql`.
+
+**Backup:** players can still click **Download data (JSON)**, and the **Facilitator ▾** menu has *Save to database now* and *Export data (JSON)*. If the database can't be reached, the game tells the player to download instead.
 
 ## Editing content
 Open `index.html` in a text editor. All content sits in two objects at the top of the script, and you change the game by editing only these:
